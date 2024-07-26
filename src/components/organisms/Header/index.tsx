@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 
 const Header = () => {
   return (
@@ -44,6 +44,7 @@ const Header = () => {
           </Button>
         </SheetTrigger>
         <SheetContent side='left' className='sm:max-w-xs'>
+        <SheetTitle></SheetTitle>
           <nav className='grid gap-6 text-lg font-medium'>
             <Link
               href='#'
@@ -54,68 +55,31 @@ const Header = () => {
             </Link>
             <Link
               href='#'
-              className='flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground'
+              className='flex items-center gap-4 px-2.5 text-accent-foreground hover:text-foreground'
             >
               <Home className='h-5 w-5' />
-              Dashboard
-            </Link>
-            <Link
-              href='#'
-              className='flex items-center gap-4 px-2.5 text-foreground'
-            >
-              <ShoppingCart className='h-5 w-5' />
-              Orders
-            </Link>
-            <Link
-              href='#'
-              className='flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground'
-            >
-              <Package className='h-5 w-5' />
-              Products
+              Início
             </Link>
             <Link
               href='#'
               className='flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground'
             >
               <Users2 className='h-5 w-5' />
-              Customers
+              Membros familiar
             </Link>
             <Link
               href='#'
               className='flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground'
             >
               <LineChart className='h-5 w-5' />
-              Settings
+              Dashboard
             </Link>
           </nav>
         </SheetContent>
       </Sheet>
-      <Breadcrumb className='hidden md:flex'>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href='#'>Dashboard</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href='#'>Orders</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Recent Orders</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-      <div className='relative ml-auto flex-1 md:grow-0'>
-        <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-        <Input
-          type='search'
-          placeholder='Search...'
-          className='w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]'
-        />
+      
+      <div className='relative ml-auto flex-2 md:grow-0'>
+        <p>Rafael Omodei</p>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -134,12 +98,11 @@ const Header = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
+          <DropdownMenuItem>Configurações</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Logout</DropdownMenuItem>
+          <DropdownMenuItem>Sair</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

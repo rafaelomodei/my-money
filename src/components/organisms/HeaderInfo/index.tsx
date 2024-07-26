@@ -13,41 +13,48 @@ import {
 
 const HeaderInfo = () => {
   return (
-    <div className='grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4'>
-      <Card className='sm:col-span-2' x-chunk='dashboard-05-chunk-0'>
+    <div className='grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6'>
+      <Card
+        className='sm:col-span-2 md:col-span-4 xl:col-span-2'
+        x-chunk='dashboard-05-chunk-0'
+      >
         <CardHeader className='pb-3'>
-          <CardTitle>Your Orders</CardTitle>
+          <CardTitle>Adicionar nova transação</CardTitle>
           <CardDescription className='max-w-lg text-balance leading-relaxed'>
-            Introducing Our Dynamic Orders Dashboard for Seamless Management and
-            Insightful Analysis.
+            Registre uma nova transação com detalhes para manter suas finanças
+            organizadas.
           </CardDescription>
         </CardHeader>
         <CardFooter>
-          <Button>Create New Order</Button>
+          <Button>+ Adicionar nova transação</Button>
         </CardFooter>
       </Card>
-      <Card x-chunk='dashboard-05-chunk-1'>
+      <Card className='sm:col-span-2' x-chunk='dashboard-05-chunk-1'>
         <CardHeader className='pb-2'>
-          <CardDescription>This Week</CardDescription>
-          <CardTitle className='text-4xl'>$1,329</CardTitle>
+          <CardDescription>+ Receita</CardDescription>
+          <CardTitle className='flex gap-4 text-4xl'>
+            <p className='text-xl content-end'>R$</p>9,897.56
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className='text-xs text-muted-foreground'>
-            +25% from last week
+            Total do mês de julho
           </div>
         </CardContent>
         <CardFooter>
           <Progress value={25} aria-label='25% increase' />
         </CardFooter>
       </Card>
-      <Card x-chunk='dashboard-05-chunk-2'>
+      <Card className='sm:col-span-2' x-chunk='dashboard-05-chunk-2'>
         <CardHeader className='pb-2'>
-          <CardDescription>This Month</CardDescription>
-          <CardTitle className='text-4xl'>$5,329</CardTitle>
+          <CardDescription>- Dispesa</CardDescription>
+          <CardTitle className='flex gap-4 text-4xl'>
+            <p className='text-xl content-end'>R$</p>9,897.56
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className='text-xs text-muted-foreground'>
-            +10% from last month
+            Total do mês de julho
           </div>
         </CardContent>
         <CardFooter>
