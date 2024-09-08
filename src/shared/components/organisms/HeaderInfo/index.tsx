@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
+import { Progress } from '@/shared/components/ui/progress';
+import { Button } from '@/shared/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,7 +9,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/shared/components/ui/card';
 
 const HeaderInfo = () => {
   return (

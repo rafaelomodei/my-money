@@ -1,10 +1,9 @@
-import * as React from 'react';
-
-import { AsideBar } from '@/components/organisms/AsideBar';
-import { Header } from '@/components/organisms/Header';
-import { HeaderInfo } from '@/components/organisms/HeaderInfo';
-import { ReleaseTabs } from '@/components/organisms/AccountingTab';
-import { Resume } from '@/components/organisms/Resume';
+'use client';
+import { AsideBar } from '@/shared/components/organisms/AsideBar';
+import { Header } from '@/shared/components/organisms/Header';
+import { HeaderInfo } from '@/shared/components/organisms/HeaderInfo';
+import { ReleaseTabs } from '@/shared/components/organisms/AccountingTab';
+import { Resume } from '@/shared/components/organisms/Resume';
 
 const Dashboard = () => {
   return (

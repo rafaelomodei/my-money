@@ -1,15 +1,15 @@
-import * as React from 'react';
-
+'use client';
+import { useEffect, useState } from 'react';
 import { File, ListFilter } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/shared/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -17,7 +17,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/shared/components/ui/dropdown-menu';
 
 import {
   Table,
@@ -26,12 +26,39 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from '@/shared/components/ui/table';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/shared/components/ui/tabs';
+import { transactionServer } from '@/shared/server';
+import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
+import { formatDate } from '@/shared/utils/date';
 
 const ReleaseTabs = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [transactions, setTransactions] = useState<TransactionDTO[] | null>(
+    null
+  );
+
+  useEffect(() => {
+    const fetchTransactionData = async () => {
+      try {
+        const transactionData = await transactionServer.getAll();
+        if (transactionData) setTransactions(transactionData);
+      } catch {
+        (err: any) => console.error('Failed to fetch transaction data: ', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTransactionData();
+  }, []);
   return (
-    <Tabs defaultValue='month'>
+    <Tabs defaultValue='week'>
       <div className='flex items-center'>
         <TabsList>
           <TabsTrigger value='week'>Semana</TabsTrigger>
@@ -65,8 +92,8 @@ const ReleaseTabs = () => {
       <TabsContent value='week'>
         <Card x-chunk='dashboard-05-chunk-3'>
           <CardHeader className='px-7'>
-            <CardTitle>Lançamentos</CardTitle>
-            <CardDescription>Ultimos lançamentos.</CardDescription>
+            <CardTitle>Transações</CardTitle>
+            <CardDescription>Ultimas transações.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -76,30 +103,36 @@ const ReleaseTabs = () => {
                   <TableHead className='hidden sm:table-cell'>Tipo</TableHead>
                   <TableHead className='hidden sm:table-cell'>Meio</TableHead>
                   <TableHead className='hidden sm:table-cell'>Status</TableHead>
-                  <TableHead className='hidden md:table-cell'>Data da compra</TableHead>
+                  <TableHead className='hidden md:table-cell'>
+                    Data da compra
+                  </TableHead>
                   <TableHead className='text-right'>Valor</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow >
-                  <TableCell>
-                    <div className='font-medium'>Posto de gasolina</div>
-                  </TableCell>
-                  <TableCell className='hidden sm:table-cell'>
-                    Crédito
-                  </TableCell>
-                  <TableCell className='hidden sm:table-cell'>
-                    Santander
-                  </TableCell>
-                  <TableCell className='hidden sm:table-cell'>
-                    pago
-                  </TableCell>
-                  <TableCell className='hidden md:table-cell'>
-                    2023-06-23
-                  </TableCell>
-                  <TableCell className='text-right'>$250.00</TableCell>
-                </TableRow>
-                
+                {!isLoading &&
+                  transactions?.map((transaction, index) => {
+                    return (
+                      <TableRow key={index}>
+                        <TableCell>
+                          <div className='font-medium'>{transaction.label}</div>
+                        </TableCell>
+                        <TableCell className='hidden sm:table-cell'>
+                          {transaction.type}
+                        </TableCell>
+                        <TableCell className='hidden sm:table-cell'>
+                          {transaction.bank}
+                        </TableCell>
+                        <TableCell className='hidden sm:table-cell'>
+                          {transaction.paymentStatus}
+                        </TableCell>
+                        <TableCell className='hidden md:table-cell'>
+                          {formatDate(transaction.paymentDate)}
+                        </TableCell>
+                        <TableCell className='text-right'>{`R$ ${transaction.value}`}</TableCell>
+                      </TableRow>
+                    );
+                  })}
               </TableBody>
             </Table>
           </CardContent>

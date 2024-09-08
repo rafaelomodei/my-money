@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { ThemeProvider } from '@/components/theme-provider';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { ThemeProvider } from '@/shared/components/theme-provider';
+import { TooltipProvider } from '@/shared/components/ui/tooltip';
+import { usePathname } from 'next/navigation';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -16,6 +17,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // const pathname = usePathname();
+
+  // console.info(pathname);
+
   return (
     <html lang='en'>
       <body className={inter.className}>

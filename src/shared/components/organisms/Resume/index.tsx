@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { ChevronLeft, ChevronRight, MoreVertical } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,19 +9,19 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/shared/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/shared/components/ui/dropdown-menu';
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
-} from '@/components/ui/pagination';
-import { Separator } from '@/components/ui/separator';
+} from '@/shared/components/ui/pagination';
+import { Separator } from '@/shared/components/ui/separator';
 
 const Resume = () => {
   return (
