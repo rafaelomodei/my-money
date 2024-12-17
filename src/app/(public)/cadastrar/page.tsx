@@ -4,6 +4,7 @@ import { Label } from '@/shared/components/ui/label';
 import { Input } from '@/shared/components/ui/input';
 import Link from 'next/link';
 import { useState } from 'react';
+import { EyeOpenIcon, EyeClosedIcon } from '@radix-ui/react-icons'; // Ícones do Radix UI
 import { userCoordinator } from '@/shared/server';
 
 const MIN_NUMBER_OF_CHARACTERS = 6;
@@ -21,6 +22,18 @@ const Login = () => {
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
 
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword((prev) => !prev);
+  };
+
   const checkPassword = (): PasswordError | null => {
     if (password.length < MIN_NUMBER_OF_CHARACTERS)
       return PasswordError.MIN_LENGTH;
@@ -36,15 +49,15 @@ const Login = () => {
         password,
         name: fistName,
         lastName,
-        createdAt: new Date,
-        updatedAt: new Date
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       if (user) {
         console.info('user: ', user);
-        window.localStorage.setItem('user', JSON.stringify(user));
+        window.sessionStorage.setItem('user', JSON.stringify(user));
 
-        window.location.href = '/';
+        window.location.href = '/inicio';
       }
     }
   };
@@ -89,27 +102,49 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div className='grid gap-2'>
-            <div className='flex items-center'>
-              <Label htmlFor='password'>Senha</Label>
+          <div className='grid gap-2 relative'>
+            <Label htmlFor='password'>Senha</Label>
+            <div className='relative'>
+              <Input
+                id='password'
+                type={showPassword ? 'text' : 'password'}
+                required
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type='button'
+                onClick={togglePasswordVisibility}
+                className='absolute inset-y-0 right-3 flex items-center'
+              >
+                {showPassword ? (
+                  <EyeClosedIcon className='h-5 w-5 text-gray-500' />
+                ) : (
+                  <EyeOpenIcon className='h-5 w-5 text-gray-500' />
+                )}
+              </button>
             </div>
-            <Input
-              id='password'
-              type='password'
-              required
-              onChange={(e) => setPassword(e.target.value)}
-            />
           </div>
-          <div className='grid gap-2'>
-            <div className='flex items-center'>
-              <Label htmlFor='confirm-password'>Confirmar senha</Label>
+          <div className='grid gap-2 relative'>
+            <Label htmlFor='confirm-password'>Confirmar senha</Label>
+            <div className='relative'>
+              <Input
+                id='confirm-password'
+                type={showConfirmPassword ? 'text' : 'password'}
+                required
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <button
+                type='button'
+                onClick={toggleConfirmPasswordVisibility}
+                className='absolute inset-y-0 right-3 flex items-center'
+              >
+                {showConfirmPassword ? (
+                  <EyeClosedIcon className='h-5 w-5 text-gray-500' />
+                ) : (
+                  <EyeOpenIcon className='h-5 w-5 text-gray-500' />
+                )}
+              </button>
             </div>
-            <Input
-              id='confirm-password'
-              type='password'
-              required
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
           </div>
           <Button type='submit' className='w-full mt-8' onClick={handleSubmit}>
             Criar cadastro

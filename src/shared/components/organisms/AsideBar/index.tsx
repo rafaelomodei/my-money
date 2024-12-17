@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {
   Home,
   LineChart,
-  Package,
+  FilePlus,
   Package2,
   Settings,
   ShoppingCart,
@@ -30,7 +30,7 @@ const AsideBar = () => {
         <Tooltip>
           <TooltipTrigger asChild>
             <Link
-              href='#'
+              href='inicio'
               className='flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-accent-foreground transition-colors hover:text-foreground md:h-8 md:w-8'
             >
               <Home className='h-5 w-5' />
@@ -38,6 +38,18 @@ const AsideBar = () => {
             </Link>
           </TooltipTrigger>
           <TooltipContent side='right'>Início</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href='nova-transacao'
+              className='flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8'
+            >
+              <FilePlus className='h-5 w-5' />
+              <span className='sr-only'>Adicionar nova Transação</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side='right'>Adicionar nova Transação</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
