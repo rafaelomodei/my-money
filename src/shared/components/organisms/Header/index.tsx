@@ -31,7 +31,12 @@ import {
 } from '@/shared/components/ui/dropdown-menu';
 import { Input } from '@/shared/components/ui/input';
 
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/shared/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from '@/shared/components/ui/sheet';
 
 const Header = () => {
   return (
@@ -44,7 +49,7 @@ const Header = () => {
           </Button>
         </SheetTrigger>
         <SheetContent side='left' className='sm:max-w-xs'>
-        <SheetTitle></SheetTitle>
+          <SheetTitle></SheetTitle>
           <nav className='grid gap-6 text-lg font-medium'>
             <Link
               href='#'
@@ -77,7 +82,7 @@ const Header = () => {
           </nav>
         </SheetContent>
       </Sheet>
-      
+
       <div className='relative ml-auto flex-2 md:grow-0'>
         <p>Rafael Omodei</p>
       </div>
@@ -89,7 +94,7 @@ const Header = () => {
             className='overflow-hidden rounded-full'
           >
             <Image
-              src='/placeholder-user.jpg'
+              src='https://www.pedigree.com.br/cdn-cgi/image/format=auto,q=90/sites/g/files/fnmzdf2401/files/2022-04/hero-icon-Savannah_0.png'
               width={36}
               height={36}
               alt='Avatar'

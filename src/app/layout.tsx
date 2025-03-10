@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/shared/components/theme-provider';
 import { TooltipProvider } from '@/shared/components/ui/tooltip';
+import ReactQueryProvider from '@/shared/providers/ReactQueryProvider';
 
 export const metadata: Metadata = {
   title: 'My Money',
@@ -22,7 +23,9 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <TooltipProvider>{children}</TooltipProvider>
+          <ReactQueryProvider>
+            <TooltipProvider>{children}</TooltipProvider>
+          </ReactQueryProvider>
         </ThemeProvider>
       </body>
     </html>

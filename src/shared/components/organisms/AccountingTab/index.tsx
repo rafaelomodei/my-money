@@ -1,6 +1,7 @@
 'use client';
-import { useEffect, useState } from 'react';
+
 import { File, ListFilter } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -36,27 +37,27 @@ import {
 import { transactionServer } from '@/shared/server';
 import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
 import { formatDate } from '@/shared/utils/date';
+import { useEffect } from 'react';
+
+const fetchTransactions = async (): Promise<TransactionDTO[]> => {
+  console.info('Buscando as transaçoes...');
+  return await transactionServer.getAll();
+};
 
 const ReleaseTabs = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [transactions, setTransactions] = useState<TransactionDTO[] | null>(
-    null
-  );
+  const {
+    data: transactions,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['transactions'],
+    queryFn: fetchTransactions,
+  });
 
   useEffect(() => {
-    const fetchTransactionData = async () => {
-      try {
-        const transactionData = await transactionServer.getAll();
-        if (transactionData) setTransactions(transactionData);
-      } catch {
-        (err: any) => console.error('Failed to fetch transaction data: ', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    console.info('useEffect::transactions:', transactions);
+  }, [transactions]);
 
-    fetchTransactionData();
-  }, []);
   return (
     <Tabs defaultValue='week'>
       <div className='flex items-center'>
@@ -93,7 +94,7 @@ const ReleaseTabs = () => {
         <Card x-chunk='dashboard-05-chunk-3'>
           <CardHeader className='px-7'>
             <CardTitle>Transações</CardTitle>
-            <CardDescription>Ultimas transações.</CardDescription>
+            <CardDescription>Últimas transações.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -110,29 +111,42 @@ const ReleaseTabs = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {!isLoading &&
-                  transactions?.map((transaction, index) => {
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <div className='font-medium'>{transaction.label}</div>
-                        </TableCell>
-                        <TableCell className='hidden sm:table-cell'>
-                          {transaction.type}
-                        </TableCell>
-                        <TableCell className='hidden sm:table-cell'>
-                          {transaction.bank}
-                        </TableCell>
-                        <TableCell className='hidden sm:table-cell'>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className='text-center'>
+                      Carregando...
+                    </TableCell>
+                  </TableRow>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className='text-center text-red-500'>
+                      Erro ao carregar as transações.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  transactions?.map((transaction, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <div className='font-medium'>{transaction.label}</div>
+                      </TableCell>
+                      <TableCell className='hidden sm:table-cell'>
+                        {transaction.type}
+                      </TableCell>
+                      <TableCell className='hidden sm:table-cell'>
+                        {transaction.bank}
+                      </TableCell>
+                      <TableCell className='hidden sm:table-cell'>
+                        <Badge variant='secondary'>
                           {transaction.paymentStatus}
-                        </TableCell>
-                        <TableCell className='hidden md:table-cell'>
-                          {formatDate(transaction.paymentDate)}
-                        </TableCell>
-                        <TableCell className='text-right'>{`R$ ${transaction.value}`}</TableCell>
-                      </TableRow>
-                    );
-                  })}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className='hidden md:table-cell'>
+                        {formatDate(transaction.paymentDate)}
+                      </TableCell>
+                      <TableCell className='text-right'>{`R$ ${transaction.value}`}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>

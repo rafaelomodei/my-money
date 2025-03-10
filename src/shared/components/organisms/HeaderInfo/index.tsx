@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useRouter } from 'next/navigation'; // Importa o hook useRouter
 
 import { Progress } from '@/shared/components/ui/progress';
 import { Button } from '@/shared/components/ui/button';
@@ -12,6 +13,12 @@ import {
 } from '@/shared/components/ui/card';
 
 const HeaderInfo = () => {
+  const router = useRouter();
+
+  const handleAddTransaction = () => {
+    router.push('/nova-transacao');
+  };
+
   return (
     <div className='grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6'>
       <Card
@@ -26,7 +33,9 @@ const HeaderInfo = () => {
           </CardDescription>
         </CardHeader>
         <CardFooter>
-          <Button>+ Adicionar nova transação</Button>
+          <Button onClick={handleAddTransaction}>
+            + Adicionar nova transação
+          </Button>
         </CardFooter>
       </Card>
       <Card className='sm:col-span-2' x-chunk='dashboard-05-chunk-1'>
@@ -47,7 +56,7 @@ const HeaderInfo = () => {
       </Card>
       <Card className='sm:col-span-2' x-chunk='dashboard-05-chunk-2'>
         <CardHeader className='pb-2'>
-          <CardDescription>- Dispesa</CardDescription>
+          <CardDescription>- Despesa</CardDescription>
           <CardTitle className='flex gap-4 text-4xl'>
             <p className='text-xl content-end'>R$</p>9,897.56
           </CardTitle>
