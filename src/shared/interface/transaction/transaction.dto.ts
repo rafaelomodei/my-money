@@ -1,10 +1,16 @@
-enum PaymentType {
+export enum PaymentType {
   CREDIT = 'Crédito',
   DEBIT = 'Débito',
   IN_CASH = 'Avista',
 }
 
-enum Bank {
+export enum PaymentStatus {
+  PAID = 'Pago',
+  PENDING = 'Pendente',
+  CANCELED = 'Cancelado',
+}
+
+export enum Bank {
   SANTANDER = 'Santander',
   BANCO_DO_BRASIL = 'Banco do Brasil',
   ITAU = 'Itaú',
@@ -13,7 +19,7 @@ enum Bank {
   PIC_PAY = 'Pyc Pay',
 }
 
-enum PaymentMethod {
+export enum PaymentMethod {
   CARD = 'Cartão',
   CASH = 'Dinheiro',
   TRANSFERENCE = 'Transferência',
