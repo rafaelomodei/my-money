@@ -1,25 +1,11 @@
+'use client';
+
 import * as React from 'react';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  Home,
-  LineChart,
-  Package,
-  Package2,
-  PanelLeft,
-  Search,
-  ShoppingCart,
-  Users2,
-} from 'lucide-react';
+import { Home, LineChart, Package2, PanelLeft, Users2 } from 'lucide-react';
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/shared/components/ui/breadcrumb';
 import { Button } from '@/shared/components/ui/button';
 import {
   DropdownMenu,
@@ -29,8 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
-import { Input } from '@/shared/components/ui/input';
-
 import {
   Sheet,
   SheetContent,
@@ -38,7 +22,27 @@ import {
   SheetTitle,
 } from '@/shared/components/ui/sheet';
 
+const getPageTitle = (pathname: string) => {
+  switch (pathname) {
+    case '/inicio':
+      return 'Início';
+    case '/nova-transacao':
+      return 'Nova Transação';
+    case '/dashboard':
+      return 'Dashboard';
+    case '/membros':
+      return 'Membros';
+    default:
+      return 'My Money';
+  }
+};
+
 const Header = () => {
+  const pathname = usePathname();
+  const pageTitle = getPageTitle(pathname);
+
+  const isActive = (href: string): Boolean => href === pathname;
+
   return (
     <header className='sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6'>
       <Sheet>
@@ -49,31 +53,40 @@ const Header = () => {
           </Button>
         </SheetTrigger>
         <SheetContent side='left' className='sm:max-w-xs'>
-          <SheetTitle></SheetTitle>
+          <SheetTitle>{pageTitle}</SheetTitle> {/* Atualiza dinamicamente */}
           <nav className='grid gap-6 text-lg font-medium'>
             <Link
-              href='#'
-              className='group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base'
-            >
-              <Package2 className='h-5 w-5 transition-all group-hover:scale-110' />
-              <span className='sr-only'>Acme Inc</span>
-            </Link>
-            <Link
-              href='#'
-              className='flex items-center gap-4 px-2.5 text-accent-foreground hover:text-foreground'
+              href='/inicio'
+              className={`flex items-center gap-4 px-2.5 ${
+                isActive('/inicio')
+                  ? 'text-accent-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
               <Home className='h-5 w-5' />
               Início
             </Link>
             <Link
-              href='#'
+              href='/nova-transacao'
+              className={`flex items-center gap-4 px-2.5 ${
+                isActive('/nova-transacao')
+                  ? 'text-accent-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }
+                 `}
+            >
+              <Package2 className='h-5 w-5' />
+              Nova Transação
+            </Link>
+            <Link
+              href='/membros'
               className='flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground'
             >
               <Users2 className='h-5 w-5' />
-              Membros familiar
+              Membros Familiar
             </Link>
             <Link
-              href='#'
+              href='/dashboard'
               className='flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground'
             >
               <LineChart className='h-5 w-5' />
@@ -82,6 +95,8 @@ const Header = () => {
           </nav>
         </SheetContent>
       </Sheet>
+
+      <h1 className='text-lg font-semibold'>{pageTitle}</h1>
 
       <div className='relative ml-auto flex-2 md:grow-0'>
         <p>Rafael Omodei</p>
