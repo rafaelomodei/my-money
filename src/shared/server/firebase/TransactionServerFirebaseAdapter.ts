@@ -39,8 +39,8 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
     return {
       id: docRef.id,
       ...transactionData,
-      updatedAt: (timesRegister.updatedAt as Timestamp).toDate(),
-      createdAt: (timesRegister.createdAt as Timestamp).toDate(),
+      updatedAt: timesRegister.updatedAt.toDate(),
+      createdAt: timesRegister.createdAt.toDate(),
     };
   }
 
@@ -49,11 +49,6 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
 
     const transactionList = transactionSnapshot.docs.map((doc) => {
       const data = doc.data();
-
-      console.info(
-        'Transaction::data: ',
-        (data.paymentDate as Timestamp).toDate().getDate()
-      );
       return {
         id: doc.id,
         label: data.label,
@@ -69,6 +64,47 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
     });
 
     return transactionList;
+  }
+
+  async getByDateRange(
+    startDate: Date,
+    endDate: Date
+  ): Promise<TransactionDTO[]> {
+    const startTimestamp = Timestamp.fromDate(startDate);
+    const endTimestamp = Timestamp.fromDate(endDate);
+
+    const q = query(
+      this.collection,
+      where('paymentDate', '>=', startTimestamp),
+      where('paymentDate', '<=', endTimestamp)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    const transactionList = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        label: data.label,
+        type: data.type,
+        paymentStatus: data.paymentStatus,
+        method: data.method,
+        bank: data.bank,
+        value: data.value,
+        paymentDate: (data.paymentDate as Timestamp).toDate(),
+        updatedAt: (data.updatedAt as Timestamp).toDate(),
+        createdAt: (data.createdAt as Timestamp).toDate(),
+      } as TransactionDTO;
+    });
+
+    return transactionList;
+  }
+
+  async getByMonth(year: number, month: number): Promise<TransactionDTO[]> {
+    const startDate = new Date(year, month - 1, 1, 0, 0, 0); // Primeiro dia do mês
+    const endDate = new Date(year, month, 0, 23, 59, 59); // Último dia do mês
+
+    return this.getByDateRange(startDate, endDate);
   }
 
   async getByID(id: string): Promise<TransactionDTO | undefined> {
