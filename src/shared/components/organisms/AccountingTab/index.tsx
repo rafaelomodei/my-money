@@ -2,7 +2,6 @@
 
 import { File, ListFilter } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import {
   Card,
@@ -19,15 +18,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/shared/components/ui/table';
 import {
   Tabs,
   TabsContent,
@@ -36,30 +26,65 @@ import {
 } from '@/shared/components/ui/tabs';
 import { transactionServer } from '@/shared/server';
 import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
-import { formatDate } from '@/shared/utils/date';
-import { useEffect } from 'react';
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { useState } from 'react';
+import { TransactionTable } from '@/shared/components/molecules/TransactionTable/TransactionTable';
 
-const fetchTransactions = async (): Promise<TransactionDTO[]> => {
-  console.info('Buscando as transaçoes...');
-  return await transactionServer.getAll();
+const months = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+];
+
+const fetchTransactionsOfWeek = async (): Promise<TransactionDTO[]> => {
+  console.info('Buscando transações da semana...');
+  const startDate = startOfWeek(new Date(), { weekStartsOn: 0 }); // Domingo
+  const endDate = endOfWeek(new Date(), { weekStartsOn: 0 }); // Sábado
+  return await transactionServer.getByDateRange(startDate, endDate);
+};
+
+const fetchTransactionsOfMonth = async (
+  year: number,
+  month: number
+): Promise<TransactionDTO[]> => {
+  console.info(`Buscando transações do mês ${month}/${year}...`);
+  const startDate = startOfMonth(new Date(year, month - 1));
+  const endDate = endOfMonth(new Date(year, month - 1));
+  return await transactionServer.getByDateRange(startDate, endDate);
 };
 
 const ReleaseTabs = () => {
+  const [selectedTab, setSelectedTab] = useState('week'); // 🔹 Aba selecionada
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // 🔹 Mês atual
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // 🔹 Ano atual
+
   const {
     data: transactions,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['transactions'],
-    queryFn: fetchTransactions,
+    queryKey: ['transactions', selectedTab, selectedMonth, selectedYear],
+    queryFn: async () => {
+      if (selectedTab === 'week') {
+        return fetchTransactionsOfWeek();
+      } else if (selectedTab === 'month') {
+        return fetchTransactionsOfMonth(selectedYear, selectedMonth);
+      }
+      return [];
+    },
   });
 
-  useEffect(() => {
-    console.info('useEffect::transactions:', transactions);
-  }, [transactions]);
-
   return (
-    <Tabs defaultValue='week'>
+    <Tabs defaultValue='week' onValueChange={setSelectedTab}>
       <div className='flex items-center'>
         <TabsList>
           <TabsTrigger value='week'>Semana</TabsTrigger>
@@ -67,6 +92,34 @@ const ReleaseTabs = () => {
           <TabsTrigger value='year'>Ano</TabsTrigger>
         </TabsList>
         <div className='ml-auto flex items-center gap-2'>
+          {selectedTab === 'month' && (
+            <div className='flex items-center gap-2'>
+              {/* Select de Mês */}
+              <select
+                className='border px-2 py-1 rounded-md'
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              >
+                {months.map((month, index) => (
+                  <option key={index + 1} value={index + 1}>
+                    {month}
+                  </option>
+                ))}
+              </select>
+              {/* 🔹 Select de Ano */}
+              <select
+                className='border px-2 py-1 rounded-md'
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+              >
+                {[2023, 2024, 2025].map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant='outline' size='sm' className='h-7 gap-1 text-sm'>
@@ -90,65 +143,40 @@ const ReleaseTabs = () => {
           </Button>
         </div>
       </div>
+
+      {/* Exibição da semana */}
       <TabsContent value='week'>
         <Card x-chunk='dashboard-05-chunk-3'>
           <CardHeader className='px-7'>
             <CardTitle>Transações</CardTitle>
-            <CardDescription>Últimas transações.</CardDescription>
+            <CardDescription>Últimas transações da semana.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead className='hidden sm:table-cell'>Tipo</TableHead>
-                  <TableHead className='hidden sm:table-cell'>Meio</TableHead>
-                  <TableHead className='hidden sm:table-cell'>Status</TableHead>
-                  <TableHead className='hidden md:table-cell'>
-                    Data da compra
-                  </TableHead>
-                  <TableHead className='text-right'>Valor</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className='text-center'>
-                      Carregando...
-                    </TableCell>
-                  </TableRow>
-                ) : error ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className='text-center text-red-500'>
-                      Erro ao carregar as transações.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  transactions?.map((transaction, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <div className='font-medium'>{transaction.label}</div>
-                      </TableCell>
-                      <TableCell className='hidden sm:table-cell'>
-                        {transaction.type}
-                      </TableCell>
-                      <TableCell className='hidden sm:table-cell'>
-                        {transaction.bank}
-                      </TableCell>
-                      <TableCell className='hidden sm:table-cell'>
-                        <Badge variant='secondary'>
-                          {transaction.paymentStatus}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className='hidden md:table-cell'>
-                        {formatDate(transaction.paymentDate)}
-                      </TableCell>
-                      <TableCell className='text-right'>{`R$ ${transaction.value}`}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+            <TransactionTable
+              transactions={transactions}
+              isLoading={isLoading}
+              error={error}
+            />
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      {/* Exibição do mês */}
+      <TabsContent value='month'>
+        <Card x-chunk='dashboard-05-chunk-3'>
+          <CardHeader className='px-7'>
+            <CardTitle>Transações</CardTitle>
+            <CardDescription>
+              Transações do mês selecionado: {months[selectedMonth - 1]} /{' '}
+              {selectedYear}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TransactionTable
+              transactions={transactions}
+              isLoading={isLoading}
+              error={error}
+            />
           </CardContent>
         </Card>
       </TabsContent>
