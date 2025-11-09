@@ -151,7 +151,7 @@ const Login = () => {
           </Button>
           <div className='mt-4 text-center text-sm'>
             Já tem uma conta?{' '}
-            <Link href='/entrar' className='underline'>
+            <Link href='/' className='underline'>
               Entrar
             </Link>
           </div>
