@@ -37,7 +37,6 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
       label: data.label,
       type: data.type,
       paymentStatus: data.paymentStatus,
-      method: data.method,
       bank: data.bank,
       value: data.value,
       userId: data.userId,
