@@ -6,4 +6,12 @@ const formatDate = (date: Date): string => {
   });
 };
 
-export { formatDate };
+const formatMonthAndYear = (month: number, year: number): string => {
+  const date = new Date(year, month - 1, 1);
+  return date.toLocaleDateString('pt-BR', {
+    month: 'long',
+    year: 'numeric',
+  });
+};
+
+export { formatDate, formatMonthAndYear };
