@@ -27,13 +27,6 @@ export enum Bank {
   PIC_PAY = 'Pyc Pay',
 }
 
-export enum PaymentMethod {
-  CARD = 'Cartão',
-  CASH = 'Dinheiro',
-  TRANSFERENCE = 'Transferência',
-  PIX = 'Pix',
-}
-
 export enum TransactionCategory {
   EXPENSE = 'expense',
   INCOME = 'income',
@@ -50,7 +43,6 @@ export interface TransactionDTO {
   label: string;
   type: string;
   paymentStatus: string;
-  method: string;
   bank: string;
   value: number;
   paymentDate: Date;

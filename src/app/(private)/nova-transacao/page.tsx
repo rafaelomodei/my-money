@@ -7,7 +7,6 @@ import {
   TransactionDTO,
   PaymentType,
   Bank,
-  PaymentMethod,
   PaymentStatus,
   TransactionCategory,
   IncomeType,
@@ -57,23 +56,10 @@ import {
   DialogTrigger,
 } from '@/shared/components/ui/dialog';
 
-const EXPENSE_PAYMENT_METHODS = [
-  PaymentMethod.CARD,
-  PaymentMethod.CASH,
-  PaymentMethod.TRANSFERENCE,
-] as const;
-
-const INCOME_PAYMENT_METHODS = [
-  PaymentMethod.CASH,
-  PaymentMethod.TRANSFERENCE,
-  PaymentMethod.PIX,
-] as const;
-
 type ExpenseFormState = {
   label: string;
   type: PaymentType | '';
   paymentStatus: PaymentStatus;
-  method: PaymentMethod | '';
   bank: Bank | '';
   value: string;
   paymentDate: Date | null;
@@ -83,7 +69,6 @@ type IncomeFormState = {
   label: string;
   type: IncomeType | '';
   paymentStatus: PaymentStatus;
-  method: PaymentMethod | '';
   bank: Bank | '';
   value: string;
   paymentDate: Date | null;
@@ -157,28 +142,6 @@ const ExpenseFields = ({
             {Object.values(PaymentStatus).map((status) => (
               <SelectItem key={status} value={status}>
                 {status}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label>Meio de Pagamento</Label>
-        <Select
-          value={data.method || undefined}
-          onValueChange={(value) =>
-            onFieldChange('method', value as PaymentMethod)
-          }
-          disabled={disabled}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder='Selecione o meio de pagamento' />
-          </SelectTrigger>
-          <SelectContent>
-            {EXPENSE_PAYMENT_METHODS.map((method) => (
-              <SelectItem key={method} value={method}>
-                {method}
               </SelectItem>
             ))}
           </SelectContent>
@@ -318,28 +281,6 @@ const IncomeFields = ({ data, disabled, onFieldChange }: IncomeFieldsProps) => {
       </div>
 
       <div>
-        <Label>Meio de Recebimento</Label>
-        <Select
-          value={data.method || undefined}
-          onValueChange={(value) =>
-            onFieldChange('method', value as PaymentMethod)
-          }
-          disabled={disabled}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder='Selecione o meio de recebimento' />
-          </SelectTrigger>
-          <SelectContent>
-            {INCOME_PAYMENT_METHODS.map((method) => (
-              <SelectItem key={method} value={method}>
-                {method}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
         <Label>Conta</Label>
         <Select
           value={data.bank || undefined}
@@ -415,7 +356,6 @@ const NewTransactionPage = () => {
     label: '',
     type: '' as ExpenseFormState['type'],
     paymentStatus: PaymentStatus.PENDING,
-    method: '' as ExpenseFormState['method'],
     bank: '' as ExpenseFormState['bank'],
     value: '',
     paymentDate: null,
@@ -424,7 +364,6 @@ const NewTransactionPage = () => {
     label: '',
     type: '' as IncomeFormState['type'],
     paymentStatus: PaymentStatus.PENDING,
-    method: '' as IncomeFormState['method'],
     bank: '' as IncomeFormState['bank'],
     value: '',
     paymentDate: null,
@@ -478,7 +417,6 @@ const NewTransactionPage = () => {
     return (
       Boolean(expenseFormData.label.trim()) &&
       Boolean(expenseFormData.type) &&
-      Boolean(expenseFormData.method) &&
       Boolean(expenseFormData.bank) &&
       Boolean(expenseFormData.paymentDate) &&
       !Number.isNaN(parsedValue) &&
@@ -492,7 +430,6 @@ const NewTransactionPage = () => {
     return (
       Boolean(incomeFormData.label.trim()) &&
       Boolean(incomeFormData.type) &&
-      Boolean(incomeFormData.method) &&
       Boolean(incomeFormData.bank) &&
       Boolean(incomeFormData.paymentDate) &&
       !Number.isNaN(parsedValue) &&
@@ -527,7 +464,7 @@ const NewTransactionPage = () => {
       return;
     }
 
-    if (!selectedFormData.type || !selectedFormData.method || !selectedFormData.bank) {
+    if (!selectedFormData.type || !selectedFormData.bank) {
       return;
     }
 
@@ -539,7 +476,6 @@ const NewTransactionPage = () => {
       label: selectedFormData.label.trim(),
       type: selectedFormData.type,
       paymentStatus: selectedFormData.paymentStatus,
-      method: selectedFormData.method,
       bank: selectedFormData.bank,
       value: parsedValue,
       paymentDate: selectedFormData.paymentDate,
