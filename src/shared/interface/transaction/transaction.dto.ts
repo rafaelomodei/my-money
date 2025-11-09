@@ -30,6 +30,7 @@ export enum PaymentMethod {
   CARD = 'Cartão',
   CASH = 'Dinheiro',
   TRANSFERENCE = 'Transferência',
+  PIX = 'Pix',
 }
 
 export enum TransactionCategory {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { transactionServer } from '@/shared/server';
 import {
@@ -46,6 +46,28 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/shared/components/ui/tabs';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/shared/components/ui/dialog';
+
+const EXPENSE_PAYMENT_METHODS = [
+  PaymentMethod.CARD,
+  PaymentMethod.CASH,
+  PaymentMethod.TRANSFERENCE,
+] as const;
+
+const INCOME_PAYMENT_METHODS = [
+  PaymentMethod.CASH,
+  PaymentMethod.TRANSFERENCE,
+  PaymentMethod.PIX,
+] as const;
 
 type ExpenseFormState = {
   label: string;
@@ -154,7 +176,7 @@ const ExpenseFields = ({
             <SelectValue placeholder='Selecione o meio de pagamento' />
           </SelectTrigger>
           <SelectContent>
-            {Object.values(PaymentMethod).map((method) => (
+            {EXPENSE_PAYMENT_METHODS.map((method) => (
               <SelectItem key={method} value={method}>
                 {method}
               </SelectItem>
@@ -187,6 +209,8 @@ const ExpenseFields = ({
         <Label>Valor</Label>
         <Input
           type='number'
+          min='0.01'
+          step='0.01'
           value={data.value}
           onChange={(event) => onFieldChange('value', event.target.value)}
           disabled={disabled}
@@ -306,7 +330,7 @@ const IncomeFields = ({ data, disabled, onFieldChange }: IncomeFieldsProps) => {
             <SelectValue placeholder='Selecione o meio de recebimento' />
           </SelectTrigger>
           <SelectContent>
-            {Object.values(PaymentMethod).map((method) => (
+            {INCOME_PAYMENT_METHODS.map((method) => (
               <SelectItem key={method} value={method}>
                 {method}
               </SelectItem>
@@ -339,6 +363,8 @@ const IncomeFields = ({ data, disabled, onFieldChange }: IncomeFieldsProps) => {
         <Label>Valor</Label>
         <Input
           type='number'
+          min='0.01'
+          step='0.01'
           value={data.value}
           onChange={(event) => onFieldChange('value', event.target.value)}
           disabled={disabled}
@@ -403,6 +429,7 @@ const NewTransactionPage = () => {
     value: '',
     paymentDate: null,
   });
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
   const mutation = useMutation({
     mutationFn: async (
@@ -436,6 +463,39 @@ const NewTransactionPage = () => {
     }));
   };
 
+  const isExpenseFormValid = useMemo(() => {
+    const parsedValue = parseFloat(expenseFormData.value);
+
+    return (
+      Boolean(expenseFormData.label.trim()) &&
+      Boolean(expenseFormData.type) &&
+      Boolean(expenseFormData.method) &&
+      Boolean(expenseFormData.bank) &&
+      Boolean(expenseFormData.paymentDate) &&
+      !Number.isNaN(parsedValue) &&
+      parsedValue > 0
+    );
+  }, [expenseFormData]);
+
+  const isIncomeFormValid = useMemo(() => {
+    const parsedValue = parseFloat(incomeFormData.value);
+
+    return (
+      Boolean(incomeFormData.label.trim()) &&
+      Boolean(incomeFormData.type) &&
+      Boolean(incomeFormData.method) &&
+      Boolean(incomeFormData.bank) &&
+      Boolean(incomeFormData.paymentDate) &&
+      !Number.isNaN(parsedValue) &&
+      parsedValue > 0
+    );
+  }, [incomeFormData]);
+
+  const isCurrentFormValid =
+    transactionCategory === TransactionCategory.EXPENSE
+      ? isExpenseFormValid
+      : isIncomeFormValid;
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -447,21 +507,7 @@ const NewTransactionPage = () => {
     const isExpense = transactionCategory === TransactionCategory.EXPENSE;
     const selectedFormData = isExpense ? expenseFormData : incomeFormData;
 
-    if (!selectedFormData.paymentDate) {
-      alert(
-        isExpense
-          ? 'Selecione uma data de pagamento'
-          : 'Selecione uma data de recebimento'
-      );
-      return;
-    }
-
-    if (!selectedFormData.type || !selectedFormData.method || !selectedFormData.bank) {
-      alert(
-        isExpense
-          ? 'Preencha todos os campos obrigatórios da despesa.'
-          : 'Preencha todos os campos obrigatórios da receita.'
-      );
+    if (!isCurrentFormValid) {
       return;
     }
 
@@ -472,8 +518,16 @@ const NewTransactionPage = () => {
       return;
     }
 
+    if (!selectedFormData.type || !selectedFormData.method || !selectedFormData.bank) {
+      return;
+    }
+
+    if (!selectedFormData.paymentDate) {
+      return;
+    }
+
     mutation.mutate({
-      label: selectedFormData.label,
+      label: selectedFormData.label.trim(),
       type: selectedFormData.type,
       paymentStatus: selectedFormData.paymentStatus,
       method: selectedFormData.method,
@@ -525,17 +579,57 @@ const NewTransactionPage = () => {
               </TabsContent>
             </Tabs>
 
-            <Button
-              type='submit'
-              disabled={isFormDisabled}
-              className='w-full'
-            >
-              {isUserLoading
-                ? 'Carregando usuário...'
-                : mutation.isPending
-                ? 'Salvando...'
-                : 'Salvar Transação'}
-            </Button>
+            <div className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
+              <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    className='w-full sm:w-auto'
+                    disabled={mutation.isPending}
+                  >
+                    Cancelar
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className='sm:max-w-md'>
+                  <DialogHeader>
+                    <DialogTitle>Cancelar cadastro da transação</DialogTitle>
+                    <DialogDescription>
+                      Tem certeza de que deseja cancelar? As informações preenchidas
+                      serão perdidas.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className='flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
+                    <DialogClose asChild>
+                      <Button variant='outline' className='w-full sm:w-auto'>
+                        Continuar editando
+                      </Button>
+                    </DialogClose>
+                    <Button
+                      variant='destructive'
+                      className='w-full sm:w-auto'
+                      onClick={() => {
+                        setIsCancelDialogOpen(false);
+                        router.push('/inicio');
+                      }}
+                    >
+                      Cancelar transação
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              <Button
+                type='submit'
+                disabled={isFormDisabled || !isCurrentFormValid}
+                className='w-full sm:w-auto'
+              >
+                {isUserLoading
+                  ? 'Carregando usuário...'
+                  : mutation.isPending
+                  ? 'Salvando...'
+                  : 'Salvar Transação'}
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
