@@ -11,7 +11,10 @@ import {
   type DocumentData,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
-import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
+import {
+  TransactionCategory,
+  TransactionDTO,
+} from '@/shared/interface/transaction/transaction.dto';
 
 export class TransactionServerFirebaseAdapter implements TransactionServer {
   private readonly db;
@@ -39,6 +42,8 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
       value: data.value,
       userId: data.userId,
       paymentDate: (data.paymentDate as Timestamp).toDate(),
+      category:
+        (data.category as TransactionCategory) ?? TransactionCategory.EXPENSE,
       updatedAt: (data.updatedAt as Timestamp).toDate(),
       createdAt: (data.createdAt as Timestamp).toDate(),
     } as TransactionDTO;

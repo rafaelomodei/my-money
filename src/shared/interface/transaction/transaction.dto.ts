@@ -4,6 +4,13 @@ export enum PaymentType {
   IN_CASH = 'Avista',
 }
 
+export enum IncomeType {
+  SALARY = 'Salário',
+  SERVICES = 'Serviços',
+  INVESTMENTS = 'Investimentos',
+  OTHERS = 'Outros',
+}
+
 export enum PaymentStatus {
   PAID = 'Pago',
   PENDING = 'Pendente',
@@ -23,7 +30,18 @@ export enum PaymentMethod {
   CARD = 'Cartão',
   CASH = 'Dinheiro',
   TRANSFERENCE = 'Transferência',
+  PIX = 'Pix',
 }
+
+export enum TransactionCategory {
+  EXPENSE = 'expense',
+  INCOME = 'income',
+}
+
+export const TRANSACTION_CATEGORY_LABEL: Record<TransactionCategory, string> = {
+  [TransactionCategory.EXPENSE]: 'Despesa',
+  [TransactionCategory.INCOME]: 'Receita',
+};
 
 export interface TransactionDTO {
   id: string;
@@ -35,6 +53,7 @@ export interface TransactionDTO {
   bank: string;
   value: number;
   paymentDate: Date;
+  category: TransactionCategory;
   updatedAt: Date;
   createdAt: Date;
 }

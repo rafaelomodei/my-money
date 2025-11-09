@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { transactionServer } from '@/shared/server';
 import {
@@ -9,6 +9,8 @@ import {
   Bank,
   PaymentMethod,
   PaymentStatus,
+  TransactionCategory,
+  IncomeType,
 } from '@/shared/interface/transaction/transaction.dto';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -38,20 +40,396 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/shared/components/ui/popover';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/shared/components/ui/tabs';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/shared/components/ui/dialog';
+
+const EXPENSE_PAYMENT_METHODS = [
+  PaymentMethod.CARD,
+  PaymentMethod.CASH,
+  PaymentMethod.TRANSFERENCE,
+] as const;
+
+const INCOME_PAYMENT_METHODS = [
+  PaymentMethod.CASH,
+  PaymentMethod.TRANSFERENCE,
+  PaymentMethod.PIX,
+] as const;
+
+type ExpenseFormState = {
+  label: string;
+  type: PaymentType | '';
+  paymentStatus: PaymentStatus;
+  method: PaymentMethod | '';
+  bank: Bank | '';
+  value: string;
+  paymentDate: Date | null;
+};
+
+type IncomeFormState = {
+  label: string;
+  type: IncomeType | '';
+  paymentStatus: PaymentStatus;
+  method: PaymentMethod | '';
+  bank: Bank | '';
+  value: string;
+  paymentDate: Date | null;
+};
+
+type ExpenseFieldKey = keyof ExpenseFormState;
+type IncomeFieldKey = keyof IncomeFormState;
+
+interface ExpenseFieldsProps {
+  data: ExpenseFormState;
+  disabled: boolean;
+  onFieldChange: (
+    field: ExpenseFieldKey,
+    value: ExpenseFormState[ExpenseFieldKey]
+  ) => void;
+}
+
+const ExpenseFields = ({
+  data,
+  disabled,
+  onFieldChange,
+}: ExpenseFieldsProps) => {
+  return (
+    <div className='grid gap-4'>
+      <div>
+        <Label>Nome</Label>
+        <Input
+          type='text'
+          value={data.label}
+          onChange={(event) => onFieldChange('label', event.target.value)}
+          disabled={disabled}
+          required
+        />
+      </div>
+
+      <div>
+        <Label>Tipo</Label>
+        <Select
+          value={data.type || undefined}
+          onValueChange={(value) =>
+            onFieldChange('type', value as ExpenseFormState['type'])
+          }
+          disabled={disabled}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder='Selecione o tipo' />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(PaymentType).map((type) => (
+              <SelectItem key={type} value={type}>
+                {type}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Status do Pagamento</Label>
+        <Select
+          value={data.paymentStatus}
+          onValueChange={(value) =>
+            onFieldChange('paymentStatus', value as PaymentStatus)
+          }
+          disabled={disabled}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder='Selecione o status' />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(PaymentStatus).map((status) => (
+              <SelectItem key={status} value={status}>
+                {status}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Meio de Pagamento</Label>
+        <Select
+          value={data.method || undefined}
+          onValueChange={(value) =>
+            onFieldChange('method', value as PaymentMethod)
+          }
+          disabled={disabled}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder='Selecione o meio de pagamento' />
+          </SelectTrigger>
+          <SelectContent>
+            {EXPENSE_PAYMENT_METHODS.map((method) => (
+              <SelectItem key={method} value={method}>
+                {method}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Banco</Label>
+        <Select
+          value={data.bank || undefined}
+          onValueChange={(value) => onFieldChange('bank', value as Bank)}
+          disabled={disabled}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder='Selecione o banco' />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(Bank).map((bank) => (
+              <SelectItem key={bank} value={bank}>
+                {bank}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Valor</Label>
+        <Input
+          type='number'
+          min='0.01'
+          step='0.01'
+          value={data.value}
+          onChange={(event) => onFieldChange('value', event.target.value)}
+          disabled={disabled}
+          required
+        />
+      </div>
+
+      <div>
+        <Label>Data do Pagamento</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type='button'
+              variant={'outline'}
+              className={`w-full justify-start text-left font-normal ${
+                !data.paymentDate ? 'text-muted-foreground' : ''
+              }`}
+              disabled={disabled}
+            >
+              <CalendarIcon className='mr-2 h-4 w-4' />
+              {data.paymentDate
+                ? format(data.paymentDate, 'dd/MM/yyyy')
+                : 'Selecione uma data'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className='w-auto p-0' align='start'>
+            <Calendar
+              mode='single'
+              selected={data.paymentDate ?? undefined}
+              onSelect={(date) => onFieldChange('paymentDate', date ?? null)}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+};
+
+interface IncomeFieldsProps {
+  data: IncomeFormState;
+  disabled: boolean;
+  onFieldChange: (
+    field: IncomeFieldKey,
+    value: IncomeFormState[IncomeFieldKey]
+  ) => void;
+}
+
+const IncomeFields = ({ data, disabled, onFieldChange }: IncomeFieldsProps) => {
+  return (
+    <div className='grid gap-4'>
+      <div>
+        <Label>Nome</Label>
+        <Input
+          type='text'
+          value={data.label}
+          onChange={(event) => onFieldChange('label', event.target.value)}
+          disabled={disabled}
+          required
+        />
+      </div>
+
+      <div>
+        <Label>Categoria da Receita</Label>
+        <Select
+          value={data.type || undefined}
+          onValueChange={(value) =>
+            onFieldChange('type', value as IncomeFormState['type'])
+          }
+          disabled={disabled}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder='Selecione a categoria' />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(IncomeType).map((type) => (
+              <SelectItem key={type} value={type}>
+                {type}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Status do Recebimento</Label>
+        <Select
+          value={data.paymentStatus}
+          onValueChange={(value) =>
+            onFieldChange('paymentStatus', value as PaymentStatus)
+          }
+          disabled={disabled}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder='Selecione o status' />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(PaymentStatus).map((status) => (
+              <SelectItem key={status} value={status}>
+                {status}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Meio de Recebimento</Label>
+        <Select
+          value={data.method || undefined}
+          onValueChange={(value) =>
+            onFieldChange('method', value as PaymentMethod)
+          }
+          disabled={disabled}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder='Selecione o meio de recebimento' />
+          </SelectTrigger>
+          <SelectContent>
+            {INCOME_PAYMENT_METHODS.map((method) => (
+              <SelectItem key={method} value={method}>
+                {method}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Conta</Label>
+        <Select
+          value={data.bank || undefined}
+          onValueChange={(value) => onFieldChange('bank', value as Bank)}
+          disabled={disabled}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder='Selecione a conta' />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(Bank).map((bank) => (
+              <SelectItem key={bank} value={bank}>
+                {bank}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Valor</Label>
+        <Input
+          type='number'
+          min='0.01'
+          step='0.01'
+          value={data.value}
+          onChange={(event) => onFieldChange('value', event.target.value)}
+          disabled={disabled}
+          required
+        />
+      </div>
+
+      <div>
+        <Label>Data do Recebimento</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type='button'
+              variant={'outline'}
+              className={`w-full justify-start text-left font-normal ${
+                !data.paymentDate ? 'text-muted-foreground' : ''
+              }`}
+              disabled={disabled}
+            >
+              <CalendarIcon className='mr-2 h-4 w-4' />
+              {data.paymentDate
+                ? format(data.paymentDate, 'dd/MM/yyyy')
+                : 'Selecione uma data'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className='w-auto p-0' align='start'>
+            <Calendar
+              mode='single'
+              selected={data.paymentDate ?? undefined}
+              onSelect={(date) => onFieldChange('paymentDate', date ?? null)}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+};
 
 const NewTransactionPage = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, isLoading: isUserLoading } = useCurrentUser();
-  const [formData, setFormData] = useState({
+  const [transactionCategory, setTransactionCategory] = useState<TransactionCategory>(
+    TransactionCategory.EXPENSE
+  );
+  const [expenseFormData, setExpenseFormData] = useState<ExpenseFormState>({
     label: '',
-    type: '' as PaymentType,
+    type: '' as ExpenseFormState['type'],
     paymentStatus: PaymentStatus.PENDING,
-    method: '' as PaymentMethod,
-    bank: '' as Bank,
+    method: '' as ExpenseFormState['method'],
+    bank: '' as ExpenseFormState['bank'],
     value: '',
-    paymentDate: null as Date | null,
+    paymentDate: null,
   });
+  const [incomeFormData, setIncomeFormData] = useState<IncomeFormState>({
+    label: '',
+    type: '' as IncomeFormState['type'],
+    paymentStatus: PaymentStatus.PENDING,
+    method: '' as IncomeFormState['method'],
+    bank: '' as IncomeFormState['bank'],
+    value: '',
+    paymentDate: null,
+  });
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
   const mutation = useMutation({
     mutationFn: async (
@@ -65,34 +443,103 @@ const NewTransactionPage = () => {
     },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleExpenseFieldChange: ExpenseFieldsProps['onFieldChange'] = (
+    field,
+    value
+  ) => {
+    setExpenseFormData((previousState) => ({
+      ...previousState,
+      [field]: value,
+    }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleIncomeFieldChange: IncomeFieldsProps['onFieldChange'] = (
+    field,
+    value
+  ) => {
+    setIncomeFormData((previousState) => ({
+      ...previousState,
+      [field]: value,
+    }));
+  };
+
+  const isExpenseFormValid = useMemo(() => {
+    const parsedValue = parseFloat(expenseFormData.value);
+
+    return (
+      Boolean(expenseFormData.label.trim()) &&
+      Boolean(expenseFormData.type) &&
+      Boolean(expenseFormData.method) &&
+      Boolean(expenseFormData.bank) &&
+      Boolean(expenseFormData.paymentDate) &&
+      !Number.isNaN(parsedValue) &&
+      parsedValue > 0
+    );
+  }, [expenseFormData]);
+
+  const isIncomeFormValid = useMemo(() => {
+    const parsedValue = parseFloat(incomeFormData.value);
+
+    return (
+      Boolean(incomeFormData.label.trim()) &&
+      Boolean(incomeFormData.type) &&
+      Boolean(incomeFormData.method) &&
+      Boolean(incomeFormData.bank) &&
+      Boolean(incomeFormData.paymentDate) &&
+      !Number.isNaN(parsedValue) &&
+      parsedValue > 0
+    );
+  }, [incomeFormData]);
+
+  const isCurrentFormValid =
+    transactionCategory === TransactionCategory.EXPENSE
+      ? isExpenseFormValid
+      : isIncomeFormValid;
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
 
     if (!user) {
       alert('Usuário não autenticado. Faça login para registrar uma transação.');
       return;
     }
 
-    if (!formData.paymentDate) {
-      alert('Selecione uma data de pagamento');
+    const isExpense = transactionCategory === TransactionCategory.EXPENSE;
+    const selectedFormData = isExpense ? expenseFormData : incomeFormData;
+
+    if (!isCurrentFormValid) {
+      return;
+    }
+
+    const parsedValue = parseFloat(selectedFormData.value);
+
+    if (Number.isNaN(parsedValue)) {
+      alert('Informe um valor válido.');
+      return;
+    }
+
+    if (!selectedFormData.type || !selectedFormData.method || !selectedFormData.bank) {
+      return;
+    }
+
+    if (!selectedFormData.paymentDate) {
       return;
     }
 
     mutation.mutate({
-      label: formData.label,
-      type: formData.type,
-      paymentStatus: formData.paymentStatus,
-      method: formData.method,
-      bank: formData.bank,
-      value: parseFloat(formData.value),
-      paymentDate: formData.paymentDate,
+      label: selectedFormData.label.trim(),
+      type: selectedFormData.type,
+      paymentStatus: selectedFormData.paymentStatus,
+      method: selectedFormData.method,
+      bank: selectedFormData.bank,
+      value: parsedValue,
+      paymentDate: selectedFormData.paymentDate,
       userId: user.uid,
+      category: transactionCategory,
     });
   };
+
+  const isFormDisabled = isUserLoading || mutation.isPending;
 
   return (
     <div className='flex flex-col items-center justify-center min-h-screen'>
@@ -102,164 +549,87 @@ const NewTransactionPage = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className='grid gap-4'>
-            <div>
-              <Label>Nome</Label>
-              <Input
-                type='text'
-                name='label'
-                value={formData.label}
-                onChange={handleChange}
-                disabled={isUserLoading || mutation.isPending}
-                required
-              />
-            </div>
+            <Tabs
+              value={transactionCategory}
+              onValueChange={(value) =>
+                setTransactionCategory(value as TransactionCategory)
+              }
+            >
+              <TabsList className='grid w-full grid-cols-2'>
+                <TabsTrigger value={TransactionCategory.EXPENSE}>
+                  Despesa
+                </TabsTrigger>
+                <TabsTrigger value={TransactionCategory.INCOME}>
+                  Receita
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value={TransactionCategory.EXPENSE} className='mt-4'>
+                <ExpenseFields
+                  data={expenseFormData}
+                  disabled={isFormDisabled}
+                  onFieldChange={handleExpenseFieldChange}
+                />
+              </TabsContent>
+              <TabsContent value={TransactionCategory.INCOME} className='mt-4'>
+                <IncomeFields
+                  data={incomeFormData}
+                  disabled={isFormDisabled}
+                  onFieldChange={handleIncomeFieldChange}
+                />
+              </TabsContent>
+            </Tabs>
 
-            <div>
-              <Label>Tipo</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, type: value as PaymentType })
-                }
-                disabled={isUserLoading || mutation.isPending}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder='Selecione o tipo' />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(PaymentType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Status do Pagamento</Label>
-              <Select
-                value={formData.paymentStatus}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    paymentStatus: value as PaymentStatus,
-                  })
-                }
-                disabled={isUserLoading || mutation.isPending}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder='Selecione o status' />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(PaymentStatus).map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Meio de Pagamento</Label>
-              <Select
-                value={formData.method}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, method: value as PaymentMethod })
-                }
-                disabled={isUserLoading || mutation.isPending}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder='Selecione o meio de pagamento' />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(PaymentMethod).map((method) => (
-                    <SelectItem key={method} value={method}>
-                      {method}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Banco</Label>
-              <Select
-                value={formData.bank}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, bank: value as Bank })
-                }
-                disabled={isUserLoading || mutation.isPending}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder='Selecione o banco' />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(Bank).map((bank) => (
-                    <SelectItem key={bank} value={bank}>
-                      {bank}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Valor</Label>
-              <Input
-                type='number'
-                name='value'
-                value={formData.value}
-                onChange={handleChange}
-                disabled={isUserLoading || mutation.isPending}
-                required
-              />
-            </div>
-
-            <div>
-              <Label>Data do Pagamento</Label>
-              <Popover>
-                <PopoverTrigger asChild>
+            <div className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
+              <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                <DialogTrigger asChild>
                   <Button
                     type='button'
-                    variant={'outline'}
-                    className={`w-full justify-start text-left font-normal ${
-                      !formData.paymentDate ? 'text-muted-foreground' : ''
-                    }`}
-                    disabled={isUserLoading || mutation.isPending}
+                    variant='outline'
+                    className='w-full sm:w-auto'
+                    disabled={mutation.isPending}
                   >
-                    <CalendarIcon className='mr-2 h-4 w-4' />
-                    {formData.paymentDate
-                      ? format(formData.paymentDate, 'dd/MM/yyyy')
-                      : 'Selecione uma data'}
+                    Cancelar
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className='w-auto p-0' align='start'>
-                  <Calendar
-                    mode='single'
-                    selected={formData.paymentDate || undefined}
-                    onSelect={(date) => {
-                      if (isUserLoading || mutation.isPending) return;
-                      setFormData({ ...formData, paymentDate: date || null });
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+                </DialogTrigger>
+                <DialogContent className='sm:max-w-md'>
+                  <DialogHeader>
+                    <DialogTitle>Cancelar cadastro da transação</DialogTitle>
+                    <DialogDescription>
+                      Tem certeza de que deseja cancelar? As informações preenchidas
+                      serão perdidas.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className='flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
+                    <DialogClose asChild>
+                      <Button variant='outline' className='w-full sm:w-auto'>
+                        Continuar editando
+                      </Button>
+                    </DialogClose>
+                    <Button
+                      variant='destructive'
+                      className='w-full sm:w-auto'
+                      onClick={() => {
+                        setIsCancelDialogOpen(false);
+                        router.push('/inicio');
+                      }}
+                    >
+                      Cancelar transação
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              <Button
+                type='submit'
+                disabled={isFormDisabled || !isCurrentFormValid}
+                className='w-full sm:w-auto'
+              >
+                {isUserLoading
+                  ? 'Carregando usuário...'
+                  : mutation.isPending
+                  ? 'Salvando...'
+                  : 'Salvar Transação'}
+              </Button>
             </div>
-
-            <Button
-              type='submit'
-              disabled={mutation.isPending || isUserLoading}
-              className='w-full'
-            >
-              {isUserLoading
-                ? 'Carregando usuário...'
-                : mutation.isPending
-                ? 'Salvando...'
-                : 'Salvar Transação'}
-            </Button>
           </form>
         </CardContent>
       </Card>
