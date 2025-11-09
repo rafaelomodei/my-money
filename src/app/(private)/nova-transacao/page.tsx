@@ -205,6 +205,9 @@ const ExpenseFields = ({
               selected={data.paymentDate ?? undefined}
               onSelect={(date) => onFieldChange('paymentDate', date ?? null)}
               initialFocus
+              captionLayout='dropdown-buttons'
+              fromYear={2000}
+              toYear={2100}
             />
           </PopoverContent>
         </Popover>
@@ -337,6 +340,9 @@ const IncomeFields = ({ data, disabled, onFieldChange }: IncomeFieldsProps) => {
               selected={data.paymentDate ?? undefined}
               onSelect={(date) => onFieldChange('paymentDate', date ?? null)}
               initialFocus
+              captionLayout='dropdown-buttons'
+              fromYear={2000}
+              toYear={2100}
             />
           </PopoverContent>
         </Popover>
