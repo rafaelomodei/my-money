@@ -85,21 +85,26 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
     startDate: Date,
     endDate: Date
   ): Promise<TransactionDTO[]> {
-    const startTimestamp = Timestamp.fromDate(startDate);
-    const endTimestamp = Timestamp.fromDate(endDate);
-
-    const q = query(
+    const userTransactionsQuery = query(
       this.collection,
-      where('userId', '==', userId),
-      where('paymentDate', '>=', startTimestamp),
-      where('paymentDate', '<=', endTimestamp)
+      where('userId', '==', userId)
     );
 
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(userTransactionsQuery);
 
-    const transactionList = querySnapshot.docs.map((doc) =>
-      this.mapDocumentToTransaction(doc)
-    );
+    const transactionList = querySnapshot.docs
+      .map((doc) => this.mapDocumentToTransaction(doc))
+      .filter((transaction) => {
+        const paymentDate = transaction.paymentDate.getTime();
+        return (
+          paymentDate >= startDate.getTime() && paymentDate <= endDate.getTime()
+        );
+      })
+      .sort(
+        (firstTransaction, secondTransaction) =>
+          firstTransaction.paymentDate.getTime() -
+          secondTransaction.paymentDate.getTime()
+      );
 
     return transactionList;
   }
