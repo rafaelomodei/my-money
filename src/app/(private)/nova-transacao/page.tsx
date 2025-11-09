@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { transactionServer } from '@/shared/server';
+import { monthlySummarySynchronizer, transactionServer } from '@/shared/server';
 import {
   TransactionDTO,
   PaymentType,
@@ -435,10 +435,19 @@ const NewTransactionPage = () => {
     mutationFn: async (
       newTransaction: Omit<TransactionDTO, 'id' | 'updatedAt' | 'createdAt'>
     ) => {
-      return transactionServer.create(newTransaction);
+      const createdTransaction = await transactionServer.create(newTransaction);
+
+      await monthlySummarySynchronizer.sync({
+        userId: createdTransaction.userId,
+        year: createdTransaction.paymentDate.getFullYear(),
+        month: createdTransaction.paymentDate.getMonth() + 1,
+      });
+
+      return createdTransaction;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-summary'] });
       router.push('/inicio');
     },
   });
