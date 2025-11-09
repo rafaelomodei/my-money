@@ -25,10 +25,10 @@ import {
   TabsTrigger,
 } from '@/shared/components/ui/tabs';
 import { transactionServer } from '@/shared/server';
-import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { TransactionTable } from '@/shared/components/molecules/TransactionTable/TransactionTable';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 const months = [
   'Janeiro',
@@ -45,42 +45,50 @@ const months = [
   'Dezembro',
 ];
 
-const fetchTransactionsOfWeek = async (): Promise<TransactionDTO[]> => {
-  console.info('Buscando transações da semana...');
-  const startDate = startOfWeek(new Date(), { weekStartsOn: 0 }); // Domingo
-  const endDate = endOfWeek(new Date(), { weekStartsOn: 0 }); // Sábado
-  return await transactionServer.getByDateRange(startDate, endDate);
-};
-
-const fetchTransactionsOfMonth = async (
-  year: number,
-  month: number
-): Promise<TransactionDTO[]> => {
-  console.info(`Buscando transações do mês ${month}/${year}...`);
-  const startDate = startOfMonth(new Date(year, month - 1));
-  const endDate = endOfMonth(new Date(year, month - 1));
-  return await transactionServer.getByDateRange(startDate, endDate);
-};
-
 const ReleaseTabs = () => {
   const [selectedTab, setSelectedTab] = useState('week'); // 🔹 Aba selecionada
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // 🔹 Mês atual
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // 🔹 Ano atual
+  const { user, isLoading: isUserLoading } = useCurrentUser();
+
+  const dateRangeFetcher = useMemo(() => {
+    if (!user) return undefined;
+
+    return async (startDate: Date, endDate: Date) => {
+      return transactionServer.getByDateRange(user.uid, startDate, endDate);
+    };
+  }, [user]);
 
   const {
     data: transactions,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['transactions', selectedTab, selectedMonth, selectedYear],
+    queryKey: [
+      'transactions',
+      user?.uid,
+      selectedTab,
+      selectedMonth,
+      selectedYear,
+    ],
     queryFn: async () => {
+      if (!dateRangeFetcher) return [];
+
       if (selectedTab === 'week') {
-        return fetchTransactionsOfWeek();
-      } else if (selectedTab === 'month') {
-        return fetchTransactionsOfMonth(selectedYear, selectedMonth);
+        const startDate = startOfWeek(new Date(), { weekStartsOn: 0 });
+        const endDate = endOfWeek(new Date(), { weekStartsOn: 0 });
+        return dateRangeFetcher(startDate, endDate);
       }
+
+      if (selectedTab === 'month') {
+        const startDate = startOfMonth(new Date(selectedYear, selectedMonth - 1));
+        const endDate = endOfMonth(new Date(selectedYear, selectedMonth - 1));
+        return dateRangeFetcher(startDate, endDate);
+      }
+
       return [];
     },
+    enabled: Boolean(user),
   });
 
   return (
@@ -154,7 +162,7 @@ const ReleaseTabs = () => {
           <CardContent>
             <TransactionTable
               transactions={transactions}
-              isLoading={isLoading}
+              isLoading={isLoading || isUserLoading}
               error={error}
             />
           </CardContent>
@@ -174,7 +182,7 @@ const ReleaseTabs = () => {
           <CardContent>
             <TransactionTable
               transactions={transactions}
-              isLoading={isLoading}
+              isLoading={isLoading || isUserLoading}
               error={error}
             />
           </CardContent>

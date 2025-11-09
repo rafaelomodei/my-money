@@ -27,6 +27,7 @@ export enum PaymentMethod {
 
 export interface TransactionDTO {
   id: string;
+  userId: string;
   label: string;
   type: string;
   paymentStatus: string;

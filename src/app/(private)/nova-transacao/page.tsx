@@ -11,6 +11,7 @@ import {
   PaymentStatus,
 } from '@/shared/interface/transaction/transaction.dto';
 import { useRouter } from 'next/navigation';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -41,6 +42,7 @@ import {
 const NewTransactionPage = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { user, isLoading: isUserLoading } = useCurrentUser();
   const [formData, setFormData] = useState({
     label: '',
     type: '' as PaymentType,
@@ -69,7 +71,16 @@ const NewTransactionPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.paymentDate) return alert('Selecione uma data de pagamento');
+
+    if (!user) {
+      alert('Usuário não autenticado. Faça login para registrar uma transação.');
+      return;
+    }
+
+    if (!formData.paymentDate) {
+      alert('Selecione uma data de pagamento');
+      return;
+    }
 
     mutation.mutate({
       label: formData.label,
@@ -79,6 +90,7 @@ const NewTransactionPage = () => {
       bank: formData.bank,
       value: parseFloat(formData.value),
       paymentDate: formData.paymentDate,
+      userId: user.uid,
     });
   };
 
@@ -97,6 +109,7 @@ const NewTransactionPage = () => {
                 name='label'
                 value={formData.label}
                 onChange={handleChange}
+                disabled={isUserLoading || mutation.isPending}
                 required
               />
             </div>
@@ -108,6 +121,7 @@ const NewTransactionPage = () => {
                 onValueChange={(value) =>
                   setFormData({ ...formData, type: value as PaymentType })
                 }
+                disabled={isUserLoading || mutation.isPending}
               >
                 <SelectTrigger>
                   <SelectValue placeholder='Selecione o tipo' />
@@ -132,6 +146,7 @@ const NewTransactionPage = () => {
                     paymentStatus: value as PaymentStatus,
                   })
                 }
+                disabled={isUserLoading || mutation.isPending}
               >
                 <SelectTrigger>
                   <SelectValue placeholder='Selecione o status' />
@@ -153,6 +168,7 @@ const NewTransactionPage = () => {
                 onValueChange={(value) =>
                   setFormData({ ...formData, method: value as PaymentMethod })
                 }
+                disabled={isUserLoading || mutation.isPending}
               >
                 <SelectTrigger>
                   <SelectValue placeholder='Selecione o meio de pagamento' />
@@ -174,6 +190,7 @@ const NewTransactionPage = () => {
                 onValueChange={(value) =>
                   setFormData({ ...formData, bank: value as Bank })
                 }
+                disabled={isUserLoading || mutation.isPending}
               >
                 <SelectTrigger>
                   <SelectValue placeholder='Selecione o banco' />
@@ -195,6 +212,7 @@ const NewTransactionPage = () => {
                 name='value'
                 value={formData.value}
                 onChange={handleChange}
+                disabled={isUserLoading || mutation.isPending}
                 required
               />
             </div>
@@ -204,10 +222,12 @@ const NewTransactionPage = () => {
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
+                    type='button'
                     variant={'outline'}
                     className={`w-full justify-start text-left font-normal ${
                       !formData.paymentDate ? 'text-muted-foreground' : ''
                     }`}
+                    disabled={isUserLoading || mutation.isPending}
                   >
                     <CalendarIcon className='mr-2 h-4 w-4' />
                     {formData.paymentDate
@@ -219,9 +239,10 @@ const NewTransactionPage = () => {
                   <Calendar
                     mode='single'
                     selected={formData.paymentDate || undefined}
-                    onSelect={(date) =>
-                      setFormData({ ...formData, paymentDate: date || null })
-                    }
+                    onSelect={(date) => {
+                      if (isUserLoading || mutation.isPending) return;
+                      setFormData({ ...formData, paymentDate: date || null });
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
@@ -230,10 +251,14 @@ const NewTransactionPage = () => {
 
             <Button
               type='submit'
-              disabled={mutation.isPending}
+              disabled={mutation.isPending || isUserLoading}
               className='w-full'
             >
-              {mutation.isPending ? 'Salvando...' : 'Salvar Transação'}
+              {isUserLoading
+                ? 'Carregando usuário...'
+                : mutation.isPending
+                ? 'Salvando...'
+                : 'Salvar Transação'}
             </Button>
           </form>
         </CardContent>

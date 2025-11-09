@@ -8,6 +8,8 @@ import {
   query,
   Timestamp,
   where,
+  type DocumentData,
+  type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
 
@@ -20,6 +22,26 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
     this.db = getFirestore(appFirebase);
     this.collectionPath = 'transactions';
     this.collection = collection(this.db, this.collectionPath);
+  }
+
+  private mapDocumentToTransaction(
+    doc: QueryDocumentSnapshot<DocumentData>
+  ): TransactionDTO {
+    const data = doc.data();
+
+    return {
+      id: doc.id,
+      label: data.label,
+      type: data.type,
+      paymentStatus: data.paymentStatus,
+      method: data.method,
+      bank: data.bank,
+      value: data.value,
+      userId: data.userId,
+      paymentDate: (data.paymentDate as Timestamp).toDate(),
+      updatedAt: (data.updatedAt as Timestamp).toDate(),
+      createdAt: (data.createdAt as Timestamp).toDate(),
+    } as TransactionDTO;
   }
 
   async create(
@@ -44,29 +66,22 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
     };
   }
 
-  async getAll(): Promise<TransactionDTO[]> {
-    const transactionSnapshot = await getDocs(this.collection);
+  async getAll(userId: string): Promise<TransactionDTO[]> {
+    const transactionQuery = query(
+      this.collection,
+      where('userId', '==', userId)
+    );
+    const transactionSnapshot = await getDocs(transactionQuery);
 
-    const transactionList = transactionSnapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        label: data.label,
-        type: data.type,
-        paymentStatus: data.paymentStatus,
-        method: data.method,
-        bank: data.bank,
-        value: data.value,
-        paymentDate: (data.paymentDate as Timestamp).toDate(),
-        updatedAt: (data.updatedAt as Timestamp).toDate(),
-        createdAt: (data.createdAt as Timestamp).toDate(),
-      } as TransactionDTO;
-    });
+    const transactionList = transactionSnapshot.docs.map((doc) =>
+      this.mapDocumentToTransaction(doc)
+    );
 
     return transactionList;
   }
 
   async getByDateRange(
+    userId: string,
     startDate: Date,
     endDate: Date
   ): Promise<TransactionDTO[]> {
@@ -75,36 +90,29 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
 
     const q = query(
       this.collection,
+      where('userId', '==', userId),
       where('paymentDate', '>=', startTimestamp),
       where('paymentDate', '<=', endTimestamp)
     );
 
     const querySnapshot = await getDocs(q);
 
-    const transactionList = querySnapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        label: data.label,
-        type: data.type,
-        paymentStatus: data.paymentStatus,
-        method: data.method,
-        bank: data.bank,
-        value: data.value,
-        paymentDate: (data.paymentDate as Timestamp).toDate(),
-        updatedAt: (data.updatedAt as Timestamp).toDate(),
-        createdAt: (data.createdAt as Timestamp).toDate(),
-      } as TransactionDTO;
-    });
+    const transactionList = querySnapshot.docs.map((doc) =>
+      this.mapDocumentToTransaction(doc)
+    );
 
     return transactionList;
   }
 
-  async getByMonth(year: number, month: number): Promise<TransactionDTO[]> {
+  async getByMonth(
+    userId: string,
+    year: number,
+    month: number
+  ): Promise<TransactionDTO[]> {
     const startDate = new Date(year, month - 1, 1, 0, 0, 0); // Primeiro dia do mês
     const endDate = new Date(year, month, 0, 23, 59, 59); // Último dia do mês
 
-    return this.getByDateRange(startDate, endDate);
+    return this.getByDateRange(userId, startDate, endDate);
   }
 
   async getByID(id: string): Promise<TransactionDTO | undefined> {
