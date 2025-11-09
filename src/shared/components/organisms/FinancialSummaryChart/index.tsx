@@ -127,15 +127,15 @@ const FinancialSummaryChart = ({ data, isLoading, period }: FinancialSummaryChar
       </CardHeader>
       <CardContent className='pt-6'>
         {isLoading ? (
-          <div className='flex h-[280px] items-center justify-center text-sm text-muted-foreground'>
+          <div className='flex h-[70px] items-center justify-center text-sm text-muted-foreground'>
             Carregando dados do gráfico...
           </div>
         ) : isEmpty ? (
-          <div className='flex h-[280px] items-center justify-center text-sm text-muted-foreground'>
+          <div className='flex h-[70px] items-center justify-center text-sm text-muted-foreground'>
             Ainda não há dados suficientes para exibir o gráfico.
           </div>
         ) : (
-          <ChartContainer config={chartConfig}>
+          <ChartContainer config={chartConfig} className='h-[70px]'>
             <AreaChart
               accessibilityLayer
               data={data.map((item) => ({
