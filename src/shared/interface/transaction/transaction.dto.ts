@@ -1,7 +1,8 @@
 export enum PaymentType {
   CREDIT = 'Crédito',
   DEBIT = 'Débito',
-  IN_CASH = 'Avista',
+  CASH = 'Dinheiro',
+  PIX = 'Pix',
 }
 
 export enum IncomeType {

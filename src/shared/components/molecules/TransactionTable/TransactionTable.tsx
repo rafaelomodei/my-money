@@ -34,7 +34,7 @@ const TransactionTable = ({
           <TableHead>Nome</TableHead>
           <TableHead className='hidden sm:table-cell'>Categoria</TableHead>
           <TableHead className='hidden sm:table-cell'>Tipo</TableHead>
-          <TableHead className='hidden sm:table-cell'>Meio</TableHead>
+          <TableHead className='hidden sm:table-cell'>Banco</TableHead>
           <TableHead className='hidden sm:table-cell'>Status</TableHead>
           <TableHead className='hidden md:table-cell'>Data da compra</TableHead>
           <TableHead className='text-right'>Valor</TableHead>

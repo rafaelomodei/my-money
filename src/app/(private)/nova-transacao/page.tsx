@@ -120,7 +120,7 @@ const ExpenseFields = ({
       </div>
 
       <div>
-        <Label>Tipo</Label>
+        <Label>Método de Pagamento</Label>
         <Select
           value={data.type || undefined}
           onValueChange={(value) =>
@@ -129,7 +129,7 @@ const ExpenseFields = ({
           disabled={disabled}
         >
           <SelectTrigger>
-            <SelectValue placeholder='Selecione o tipo' />
+            <SelectValue placeholder='Selecione o método de pagamento' />
           </SelectTrigger>
           <SelectContent>
             {Object.values(PaymentType).map((type) => (
