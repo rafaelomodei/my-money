@@ -9,7 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/components/ui/table';
-import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
+import {
+  TRANSACTION_CATEGORY_LABEL,
+  TransactionCategory,
+  TransactionDTO,
+} from '@/shared/interface/transaction/transaction.dto';
 import { formatDate } from '@/shared/utils/date';
 
 interface TransactionTableProps {
@@ -28,6 +32,7 @@ const TransactionTable = ({
       <TableHeader>
         <TableRow>
           <TableHead>Nome</TableHead>
+          <TableHead className='hidden sm:table-cell'>Categoria</TableHead>
           <TableHead className='hidden sm:table-cell'>Tipo</TableHead>
           <TableHead className='hidden sm:table-cell'>Meio</TableHead>
           <TableHead className='hidden sm:table-cell'>Status</TableHead>
@@ -38,20 +43,20 @@ const TransactionTable = ({
       <TableBody>
         {isLoading ? (
           <TableRow>
-            <TableCell colSpan={6} className='text-center'>
+            <TableCell colSpan={7} className='text-center'>
               Carregando...
             </TableCell>
           </TableRow>
         ) : error ? (
           <TableRow>
-            <TableCell colSpan={6} className='text-center text-red-500'>
+            <TableCell colSpan={7} className='text-center text-red-500'>
               Erro ao carregar as transações.
             </TableCell>
           </TableRow>
         ) : transactions?.length === 0 ? (
           <TableRow>
             <TableCell
-              colSpan={6}
+              colSpan={7}
               className='text-center text-muted-foreground'
             >
               Nenhuma transação encontrada.
@@ -62,6 +67,21 @@ const TransactionTable = ({
             <TableRow key={index}>
               <TableCell>
                 <div className='font-medium'>{transaction.label}</div>
+              </TableCell>
+              <TableCell className='hidden sm:table-cell'>
+                <Badge
+                  variant={
+                    transaction.category === TransactionCategory.INCOME
+                      ? 'default'
+                      : 'secondary'
+                  }
+                >
+                  {
+                    TRANSACTION_CATEGORY_LABEL[
+                      transaction.category ?? TransactionCategory.EXPENSE
+                    ]
+                  }
+                </Badge>
               </TableCell>
               <TableCell className='hidden sm:table-cell'>
                 {transaction.type}
