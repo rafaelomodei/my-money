@@ -52,6 +52,7 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
     return {
       id: doc.id,
       label: data.label,
+      description: (data.description as string | null) ?? null,
       type: data.type,
       paymentStatus: data.paymentStatus,
       bank: data.bank,
@@ -60,6 +61,11 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
       paymentDate: (data.paymentDate as Timestamp).toDate(),
       origin,
       category,
+      memberId: (data.memberId as string | null) ?? null,
+      memberName: (data.memberName as string | null) ?? null,
+      installmentCount: (data.installmentCount as number | undefined) ?? 1,
+      installmentNumber: (data.installmentNumber as number | undefined) ?? 1,
+      installmentGroupId: (data.installmentGroupId as string | null) ?? null,
       updatedAt: (data.updatedAt as Timestamp).toDate(),
       createdAt: (data.createdAt as Timestamp).toDate(),
     } as TransactionDTO;
@@ -77,11 +83,23 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
       ...transactionData,
       ...timesRegister,
       paymentDate: Timestamp.fromDate(transactionData.paymentDate),
+      description: transactionData.description ?? null,
+      memberId: transactionData.memberId ?? null,
+      memberName: transactionData.memberName ?? null,
+      installmentCount: transactionData.installmentCount ?? 1,
+      installmentNumber: transactionData.installmentNumber ?? 1,
+      installmentGroupId: transactionData.installmentGroupId ?? null,
     });
 
     return {
       id: docRef.id,
       ...transactionData,
+      description: transactionData.description ?? null,
+      memberId: transactionData.memberId ?? null,
+      memberName: transactionData.memberName ?? null,
+      installmentCount: transactionData.installmentCount ?? 1,
+      installmentNumber: transactionData.installmentNumber ?? 1,
+      installmentGroupId: transactionData.installmentGroupId ?? null,
       updatedAt: timesRegister.updatedAt.toDate(),
       createdAt: timesRegister.createdAt.toDate(),
     };
