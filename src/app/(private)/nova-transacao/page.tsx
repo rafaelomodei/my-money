@@ -246,7 +246,6 @@ const DetailsStep = ({
           }
           onChange={(event) => handleDescriptionChange(event.target.value)}
           disabled={disabled}
-          required
         />
       </div>
 
@@ -786,7 +785,6 @@ const NewTransactionPage = () => {
   const isExpenseDetailsValid = useMemo(() => {
     return (
       Boolean(expenseFormData.label.trim()) &&
-      Boolean(expenseFormData.description.trim()) &&
       Boolean(expenseFormData.category)
     );
   }, [expenseFormData]);
@@ -794,7 +792,6 @@ const NewTransactionPage = () => {
   const isIncomeDetailsValid = useMemo(() => {
     return (
       Boolean(incomeFormData.label.trim()) &&
-      Boolean(incomeFormData.description.trim()) &&
       Boolean(incomeFormData.incomeCategory)
     );
   }, [incomeFormData]);
