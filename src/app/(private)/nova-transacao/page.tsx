@@ -3,16 +3,21 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { monthlySummarySynchronizer, transactionServer } from '@/shared/server';
+import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
 import {
-  TransactionDTO,
-  PaymentType,
   Bank,
-  PaymentStatus,
-  TransactionOrigin,
-  IncomeType,
+  BANKS,
   ExpenseCategory,
   EXPENSE_CATEGORIES,
-} from '@/shared/interface/transaction/transaction.dto';
+  IncomeCategory,
+  INCOME_CATEGORIES,
+  PaymentStatus,
+  PAYMENT_STATUSES,
+  PaymentType,
+  PAYMENT_TYPES,
+  TransactionOrigin,
+  TRANSACTION_ORIGIN_LABEL,
+} from '@/shared/constants/finance';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
 
@@ -70,7 +75,7 @@ type ExpenseFormState = {
 
 type IncomeFormState = {
   label: string;
-  type: IncomeType | '';
+  type: IncomeCategory | '';
   paymentStatus: PaymentStatus;
   bank: Bank | '';
   value: string;
@@ -142,7 +147,7 @@ const ExpenseFields = ({
             <SelectValue placeholder='Selecione o método de pagamento' />
           </SelectTrigger>
           <SelectContent>
-            {Object.values(PaymentType).map((type) => (
+            {PAYMENT_TYPES.map((type) => (
               <SelectItem key={type} value={type}>
                 {type}
               </SelectItem>
@@ -164,7 +169,7 @@ const ExpenseFields = ({
             <SelectValue placeholder='Selecione o status' />
           </SelectTrigger>
           <SelectContent>
-            {Object.values(PaymentStatus).map((status) => (
+            {PAYMENT_STATUSES.map((status) => (
               <SelectItem key={status} value={status}>
                 {status}
               </SelectItem>
@@ -184,7 +189,7 @@ const ExpenseFields = ({
             <SelectValue placeholder='Selecione o banco' />
           </SelectTrigger>
           <SelectContent>
-            {Object.values(Bank).map((bank) => (
+            {BANKS.map((bank) => (
               <SelectItem key={bank} value={bank}>
                 {bank}
               </SelectItem>
@@ -277,7 +282,7 @@ const IncomeFields = ({ data, disabled, onFieldChange }: IncomeFieldsProps) => {
             <SelectValue placeholder='Selecione a categoria' />
           </SelectTrigger>
           <SelectContent>
-            {Object.values(IncomeType).map((type) => (
+            {INCOME_CATEGORIES.map((type) => (
               <SelectItem key={type} value={type}>
                 {type}
               </SelectItem>
@@ -299,7 +304,7 @@ const IncomeFields = ({ data, disabled, onFieldChange }: IncomeFieldsProps) => {
             <SelectValue placeholder='Selecione o status' />
           </SelectTrigger>
           <SelectContent>
-            {Object.values(PaymentStatus).map((status) => (
+            {PAYMENT_STATUSES.map((status) => (
               <SelectItem key={status} value={status}>
                 {status}
               </SelectItem>
@@ -319,7 +324,7 @@ const IncomeFields = ({ data, disabled, onFieldChange }: IncomeFieldsProps) => {
             <SelectValue placeholder='Selecione a conta' />
           </SelectTrigger>
           <SelectContent>
-            {Object.values(Bank).map((bank) => (
+            {BANKS.map((bank) => (
               <SelectItem key={bank} value={bank}>
                 {bank}
               </SelectItem>

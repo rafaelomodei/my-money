@@ -16,7 +16,7 @@ import {
   type DocumentData,
   type DocumentSnapshot,
 } from 'firebase/firestore';
-import { PaymentStatus } from '@/shared/interface/transaction/transaction.dto';
+import { PaymentStatus } from '@/shared/constants/finance';
 
 interface SummaryTransactionFirestoreData {
   transactionId: string;

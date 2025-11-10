@@ -11,15 +11,14 @@ import {
   type DocumentData,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
+import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
 import {
   ExpenseCategory,
-  TransactionDTO,
   TransactionOrigin,
-} from '@/shared/interface/transaction/transaction.dto';
+  TRANSACTION_ORIGINS,
+} from '@/shared/constants/finance';
 
-const TRANSACTION_ORIGIN_VALUES = new Set<string>(
-  Object.values(TransactionOrigin)
-);
+const TRANSACTION_ORIGIN_VALUES = new Set<string>(TRANSACTION_ORIGINS);
 
 export class TransactionServerFirebaseAdapter implements TransactionServer {
   private readonly db;

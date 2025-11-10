@@ -9,11 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/components/ui/table';
+import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
 import {
   TRANSACTION_ORIGIN_LABEL,
-  TransactionDTO,
   TransactionOrigin,
-} from '@/shared/interface/transaction/transaction.dto';
+} from '@/shared/constants/finance';
 import { formatDate } from '@/shared/utils/date';
 
 interface TransactionTableProps {

@@ -2,11 +2,8 @@ import {
   SummaryTransactionItemDTO,
   SummaryUpsertData,
 } from '@/shared/interface/summary/summary.dto';
-import {
-  PaymentStatus,
-  TransactionDTO,
-  TransactionOrigin,
-} from '@/shared/interface/transaction/transaction.dto';
+import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
+import { PaymentStatus, TransactionOrigin } from '@/shared/constants/finance';
 import {
   SummaryCalculationContext,
   SummaryCalculator,
