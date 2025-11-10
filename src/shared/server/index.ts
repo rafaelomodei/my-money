@@ -1,4 +1,8 @@
-import { TransactionServerFirebaseAdapter, SummaryServerFirebaseAdapter } from './firebase';
+import {
+  TransactionServerFirebaseAdapter,
+  SummaryServerFirebaseAdapter,
+  MemberServerFirebaseAdapter,
+} from './firebase';
 import { TransactionServer } from '../interface/transaction/transactionServer';
 import { AuthServiceFirebaseAdapter } from './firebase/AuthServerFirebaseAdapter';
 import { AuthServer } from '../interface/auth/authServer';
@@ -12,9 +16,12 @@ import {
   MonthlySummarySynchronizer,
 } from '../services/summary';
 
+import { MemberServer } from '../interface/member/memberServer';
+
 const transactionServer: TransactionServer =
   new TransactionServerFirebaseAdapter();
 const summaryServer: SummaryServer = new SummaryServerFirebaseAdapter();
+const memberServer: MemberServer = new MemberServerFirebaseAdapter();
 const summaryCalculator = new DefaultSummaryCalculator();
 const monthlySummarySynchronizer = new MonthlySummarySynchronizer({
   transactionServer,
@@ -29,6 +36,7 @@ const userCoordinator: UserCoordinatorServe =
 
 export {
   transactionServer,
+  memberServer,
   authService,
   userService,
   userCoordinator,
