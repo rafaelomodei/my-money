@@ -4,8 +4,8 @@ import {
 } from '@/shared/interface/summary/summary.dto';
 import {
   PaymentStatus,
-  TransactionCategory,
   TransactionDTO,
+  TransactionOrigin,
 } from '@/shared/interface/transaction/transaction.dto';
 import {
   SummaryCalculationContext,
@@ -53,7 +53,7 @@ export class DefaultSummaryCalculator implements SummaryCalculator {
         paymentDate: transaction.paymentDate,
       };
 
-      if (transaction.category === TransactionCategory.INCOME) {
+      if (transaction.origin === TransactionOrigin.INCOME) {
         incomeTransactions.push(summaryTransaction);
         incomeTotal += transaction.value;
         return;

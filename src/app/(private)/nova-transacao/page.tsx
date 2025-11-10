@@ -8,8 +8,10 @@ import {
   PaymentType,
   Bank,
   PaymentStatus,
-  TransactionCategory,
+  TransactionOrigin,
   IncomeType,
+  ExpenseCategory,
+  EXPENSE_CATEGORIES,
 } from '@/shared/interface/transaction/transaction.dto';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -63,6 +65,7 @@ type ExpenseFormState = {
   bank: Bank | '';
   value: string;
   paymentDate: Date | null;
+  category: ExpenseCategory | '';
 };
 
 type IncomeFormState = {
@@ -102,6 +105,28 @@ const ExpenseFields = ({
           disabled={disabled}
           required
         />
+      </div>
+
+      <div>
+        <Label>Categoria</Label>
+        <Select
+          value={data.category || undefined}
+          onValueChange={(value) =>
+            onFieldChange('category', value as ExpenseFormState['category'])
+          }
+          disabled={disabled}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder='Selecione a categoria' />
+          </SelectTrigger>
+          <SelectContent>
+            {EXPENSE_CATEGORIES.map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
@@ -355,8 +380,8 @@ const NewTransactionPage = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, isLoading: isUserLoading } = useCurrentUser();
-  const [transactionCategory, setTransactionCategory] = useState<TransactionCategory>(
-    TransactionCategory.EXPENSE
+  const [transactionOrigin, setTransactionOrigin] = useState<TransactionOrigin>(
+    TransactionOrigin.EXPENSE
   );
   const [expenseFormData, setExpenseFormData] = useState<ExpenseFormState>({
     label: '',
@@ -365,6 +390,7 @@ const NewTransactionPage = () => {
     bank: '' as ExpenseFormState['bank'],
     value: '',
     paymentDate: null,
+    category: '' as ExpenseFormState['category'],
   });
   const [incomeFormData, setIncomeFormData] = useState<IncomeFormState>({
     label: '',
@@ -425,6 +451,7 @@ const NewTransactionPage = () => {
       Boolean(expenseFormData.type) &&
       Boolean(expenseFormData.bank) &&
       Boolean(expenseFormData.paymentDate) &&
+      Boolean(expenseFormData.category) &&
       !Number.isNaN(parsedValue) &&
       parsedValue > 0
     );
@@ -444,7 +471,7 @@ const NewTransactionPage = () => {
   }, [incomeFormData]);
 
   const isCurrentFormValid =
-    transactionCategory === TransactionCategory.EXPENSE
+    transactionOrigin === TransactionOrigin.EXPENSE
       ? isExpenseFormValid
       : isIncomeFormValid;
 
@@ -456,7 +483,7 @@ const NewTransactionPage = () => {
       return;
     }
 
-    const isExpense = transactionCategory === TransactionCategory.EXPENSE;
+    const isExpense = transactionOrigin === TransactionOrigin.EXPENSE;
     const selectedFormData = isExpense ? expenseFormData : incomeFormData;
 
     if (!isCurrentFormValid) {
@@ -478,6 +505,10 @@ const NewTransactionPage = () => {
       return;
     }
 
+    if (isExpense && !expenseFormData.category) {
+      return;
+    }
+
     mutation.mutate({
       label: selectedFormData.label.trim(),
       type: selectedFormData.type,
@@ -486,7 +517,8 @@ const NewTransactionPage = () => {
       value: parsedValue,
       paymentDate: selectedFormData.paymentDate,
       userId: user.uid,
-      category: transactionCategory,
+      origin: transactionOrigin,
+      category: isExpense ? expenseFormData.category : null,
     });
   };
 
@@ -501,27 +533,27 @@ const NewTransactionPage = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className='grid gap-4'>
             <Tabs
-              value={transactionCategory}
+              value={transactionOrigin}
               onValueChange={(value) =>
-                setTransactionCategory(value as TransactionCategory)
+                setTransactionOrigin(value as TransactionOrigin)
               }
             >
               <TabsList className='grid w-full grid-cols-2'>
-                <TabsTrigger value={TransactionCategory.EXPENSE}>
+                <TabsTrigger value={TransactionOrigin.EXPENSE}>
                   Despesa
                 </TabsTrigger>
-                <TabsTrigger value={TransactionCategory.INCOME}>
+                <TabsTrigger value={TransactionOrigin.INCOME}>
                   Receita
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value={TransactionCategory.EXPENSE} className='mt-4'>
+              <TabsContent value={TransactionOrigin.EXPENSE} className='mt-4'>
                 <ExpenseFields
                   data={expenseFormData}
                   disabled={isFormDisabled}
                   onFieldChange={handleExpenseFieldChange}
                 />
               </TabsContent>
-              <TabsContent value={TransactionCategory.INCOME} className='mt-4'>
+              <TabsContent value={TransactionOrigin.INCOME} className='mt-4'>
                 <IncomeFields
                   data={incomeFormData}
                   disabled={isFormDisabled}

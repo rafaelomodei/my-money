@@ -27,15 +27,41 @@ export enum Bank {
   PIC_PAY = 'Pyc Pay',
 }
 
-export enum TransactionCategory {
+export enum TransactionOrigin {
   EXPENSE = 'expense',
   INCOME = 'income',
 }
 
-export const TRANSACTION_CATEGORY_LABEL: Record<TransactionCategory, string> = {
-  [TransactionCategory.EXPENSE]: 'Despesa',
-  [TransactionCategory.INCOME]: 'Receita',
+export const TRANSACTION_ORIGIN_LABEL: Record<TransactionOrigin, string> = {
+  [TransactionOrigin.EXPENSE]: 'Despesa',
+  [TransactionOrigin.INCOME]: 'Receita',
 };
+
+export enum ExpenseCategory {
+  HOUSING = 'Casa',
+  TRANSPORTATION = 'Transporte',
+  CAR = 'Carro',
+  GROCERIES = 'Supermercado',
+  DINING = 'Alimentação fora de casa',
+  PERSONAL = 'Despesas pessoais',
+  CLOTHING = 'Vestuário',
+  HEALTH = 'Saúde',
+  EDUCATION = 'Educação e cursos',
+  INVESTMENTS = 'Investimentos',
+  ENTERTAINMENT = 'Lazer e entretenimento',
+  TRAVEL = 'Viagem',
+  SUBSCRIPTIONS = 'Assinaturas e serviços',
+  GIFTS = 'Presentes e doações',
+  PETS = 'Cuidados com pets',
+  HOME_SERVICES = 'Serviços domésticos',
+  MAINTENANCE = 'Manutenção e reparos',
+  TAXES = 'Impostos e taxas',
+  TECHNOLOGY = 'Tecnologia',
+  INSURANCE = 'Seguros',
+  OTHERS = 'Outros',
+}
+
+export const EXPENSE_CATEGORIES = Object.values(ExpenseCategory);
 
 export interface TransactionDTO {
   id: string;
@@ -46,7 +72,8 @@ export interface TransactionDTO {
   bank: string;
   value: number;
   paymentDate: Date;
-  category: TransactionCategory;
+  origin: TransactionOrigin;
+  category: ExpenseCategory | null;
   updatedAt: Date;
   createdAt: Date;
 }

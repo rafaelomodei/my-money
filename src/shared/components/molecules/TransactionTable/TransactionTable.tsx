@@ -10,9 +10,9 @@ import {
   TableRow,
 } from '@/shared/components/ui/table';
 import {
-  TRANSACTION_CATEGORY_LABEL,
-  TransactionCategory,
+  TRANSACTION_ORIGIN_LABEL,
   TransactionDTO,
+  TransactionOrigin,
 } from '@/shared/interface/transaction/transaction.dto';
 import { formatDate } from '@/shared/utils/date';
 
@@ -32,6 +32,7 @@ const TransactionTable = ({
       <TableHeader>
         <TableRow>
           <TableHead>Nome</TableHead>
+          <TableHead className='hidden sm:table-cell'>Origem</TableHead>
           <TableHead className='hidden sm:table-cell'>Categoria</TableHead>
           <TableHead className='hidden sm:table-cell'>Tipo</TableHead>
           <TableHead className='hidden sm:table-cell'>Banco</TableHead>
@@ -43,20 +44,20 @@ const TransactionTable = ({
       <TableBody>
         {isLoading ? (
           <TableRow>
-            <TableCell colSpan={7} className='text-center'>
+            <TableCell colSpan={8} className='text-center'>
               Carregando...
             </TableCell>
           </TableRow>
         ) : error ? (
           <TableRow>
-            <TableCell colSpan={7} className='text-center text-red-500'>
+            <TableCell colSpan={8} className='text-center text-red-500'>
               Erro ao carregar as transações.
             </TableCell>
           </TableRow>
         ) : transactions?.length === 0 ? (
           <TableRow>
             <TableCell
-              colSpan={7}
+              colSpan={8}
               className='text-center text-muted-foreground'
             >
               Nenhuma transação encontrada.
@@ -71,17 +72,22 @@ const TransactionTable = ({
               <TableCell className='hidden sm:table-cell'>
                 <Badge
                   variant={
-                    transaction.category === TransactionCategory.INCOME
+                    transaction.origin === TransactionOrigin.INCOME
                       ? 'default'
                       : 'secondary'
                   }
                 >
                   {
-                    TRANSACTION_CATEGORY_LABEL[
-                      transaction.category ?? TransactionCategory.EXPENSE
+                    TRANSACTION_ORIGIN_LABEL[
+                      transaction.origin ?? TransactionOrigin.EXPENSE
                     ]
                   }
                 </Badge>
+              </TableCell>
+              <TableCell className='hidden sm:table-cell'>
+                {transaction.origin === TransactionOrigin.EXPENSE
+                  ? transaction.category ?? 'Sem categoria'
+                  : '—'}
               </TableCell>
               <TableCell className='hidden sm:table-cell'>
                 {transaction.type}
