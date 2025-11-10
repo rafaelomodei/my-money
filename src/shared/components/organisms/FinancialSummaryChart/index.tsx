@@ -41,11 +41,11 @@ type FinancialSummaryChartProps = {
 const chartConfig = {
   income: {
     label: 'Receitas',
-    color: 'hsl(var(--chart-2))',
+    color: 'hsl(var(--chart-3))',
   },
   expense: {
     label: 'Despesas',
-    color: 'hsl(var(--chart-1))',
+    color: 'hsl(var(--chart-2))',
   },
 } satisfies ChartConfig;
 
@@ -61,7 +61,10 @@ const formatPeriodLabel = (start: Date | null, end: Date | null): string => {
     return 'Período indisponível';
   }
 
-  const startLabel = formatMonthAndYear(start.getMonth() + 1, start.getFullYear());
+  const startLabel = formatMonthAndYear(
+    start.getMonth() + 1,
+    start.getFullYear()
+  );
   const endLabel = formatMonthAndYear(end.getMonth() + 1, end.getFullYear());
 
   if (startLabel === endLabel) {
@@ -71,7 +74,11 @@ const formatPeriodLabel = (start: Date | null, end: Date | null): string => {
   return `${startLabel} - ${endLabel}`;
 };
 
-const FinancialSummaryChart = ({ data, isLoading, period }: FinancialSummaryChartProps) => {
+const FinancialSummaryChart = ({
+  data,
+  isLoading,
+  period,
+}: FinancialSummaryChartProps) => {
   const isEmpty = data.length === 0;
 
   const periodLabel = useMemo(
@@ -79,7 +86,11 @@ const FinancialSummaryChart = ({ data, isLoading, period }: FinancialSummaryChar
     [period.end, period.start]
   );
 
-  const { trendIcon: TrendIcon, trendLabel, trendClassName } = useMemo(() => {
+  const {
+    trendIcon: TrendIcon,
+    trendLabel,
+    trendClassName,
+  } = useMemo(() => {
     if (data.length < 2) {
       return {
         trendIcon: Minus,
@@ -99,7 +110,9 @@ const FinancialSummaryChart = ({ data, isLoading, period }: FinancialSummaryChar
     if (difference > 0) {
       return {
         trendIcon: TrendingUp,
-        trendLabel: `Saldo cresceu ${formatCurrency(difference)} em relação ao mês anterior`,
+        trendLabel: `Saldo cresceu ${formatCurrency(
+          difference
+        )} em relação ao mês anterior`,
         trendClassName: 'text-emerald-500',
       };
     }
@@ -107,7 +120,9 @@ const FinancialSummaryChart = ({ data, isLoading, period }: FinancialSummaryChar
     if (difference < 0) {
       return {
         trendIcon: TrendingDown,
-        trendLabel: `Saldo reduziu ${formatCurrency(Math.abs(difference))} em relação ao mês anterior`,
+        trendLabel: `Saldo reduziu ${formatCurrency(
+          Math.abs(difference)
+        )} em relação ao mês anterior`,
         trendClassName: 'text-destructive',
       };
     }
@@ -127,15 +142,15 @@ const FinancialSummaryChart = ({ data, isLoading, period }: FinancialSummaryChar
       </CardHeader>
       <CardContent className='pt-6'>
         {isLoading ? (
-          <div className='flex h-[70px] items-center justify-center text-sm text-muted-foreground'>
+          <div className='flex h-32 w-full items-center justify-center text-sm text-muted-foreground'>
             Carregando dados do gráfico...
           </div>
         ) : isEmpty ? (
-          <div className='flex h-[70px] items-center justify-center text-sm text-muted-foreground'>
+          <div className='flex h-32 w-full items-center justify-center text-sm text-muted-foreground'>
             Ainda não há dados suficientes para exibir o gráfico.
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className='h-[70px]'>
+          <ChartContainer config={chartConfig} className='h-32 w-full'>
             <AreaChart
               accessibilityLayer
               data={data.map((item) => ({
@@ -192,7 +207,9 @@ const FinancialSummaryChart = ({ data, isLoading, period }: FinancialSummaryChar
             <TrendIcon className={`h-4 w-4 ${trendClassName}`} />
             <span className={trendClassName}>{trendLabel}</span>
           </div>
-          <div className='text-muted-foreground leading-none'>{periodLabel}</div>
+          <div className='text-muted-foreground leading-none'>
+            {periodLabel}
+          </div>
         </div>
       </CardFooter>
     </Card>
