@@ -11,10 +11,14 @@ import {
   type DocumentData,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
+import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
 import {
-  TransactionCategory,
-  TransactionDTO,
-} from '@/shared/interface/transaction/transaction.dto';
+  ExpenseCategory,
+  TransactionOrigin,
+  TRANSACTION_ORIGINS,
+} from '@/shared/constants/finance';
+
+const TRANSACTION_ORIGIN_VALUES = new Set<string>(TRANSACTION_ORIGINS);
 
 export class TransactionServerFirebaseAdapter implements TransactionServer {
   private readonly db;
@@ -31,6 +35,19 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
     doc: QueryDocumentSnapshot<DocumentData>
   ): TransactionDTO {
     const data = doc.data();
+    const rawCategory = data.category as string | undefined;
+    const rawOrigin = data.origin as TransactionOrigin | undefined;
+    const origin: TransactionOrigin =
+      rawOrigin ??
+      (rawCategory && TRANSACTION_ORIGIN_VALUES.has(rawCategory)
+        ? (rawCategory as TransactionOrigin)
+        : TransactionOrigin.EXPENSE);
+    const category: ExpenseCategory | null =
+      origin === TransactionOrigin.EXPENSE &&
+      rawCategory &&
+      !TRANSACTION_ORIGIN_VALUES.has(rawCategory)
+        ? (rawCategory as ExpenseCategory)
+        : ((data.expenseCategory as ExpenseCategory) ?? null);
 
     return {
       id: doc.id,
@@ -41,8 +58,8 @@ export class TransactionServerFirebaseAdapter implements TransactionServer {
       value: data.value,
       userId: data.userId,
       paymentDate: (data.paymentDate as Timestamp).toDate(),
-      category:
-        (data.category as TransactionCategory) ?? TransactionCategory.EXPENSE,
+      origin,
+      category,
       updatedAt: (data.updatedAt as Timestamp).toDate(),
       createdAt: (data.createdAt as Timestamp).toDate(),
     } as TransactionDTO;

@@ -1,41 +1,8 @@
-export enum PaymentType {
-  CREDIT = 'Crédito',
-  DEBIT = 'Débito',
-  CASH = 'Dinheiro',
-  PIX = 'Pix',
-}
-
-export enum IncomeType {
-  SALARY = 'Salário',
-  SERVICES = 'Serviços',
-  INVESTMENTS = 'Investimentos',
-  OTHERS = 'Outros',
-}
-
-export enum PaymentStatus {
-  PAID = 'Pago',
-  PENDING = 'Pendente',
-  CANCELED = 'Cancelado',
-}
-
-export enum Bank {
-  SANTANDER = 'Santander',
-  BANCO_DO_BRASIL = 'Banco do Brasil',
-  ITAU = 'Itaú',
-  BRADESCO = 'Bradesco',
-  NUBANK = 'Nubank',
-  PIC_PAY = 'Pyc Pay',
-}
-
-export enum TransactionCategory {
-  EXPENSE = 'expense',
-  INCOME = 'income',
-}
-
-export const TRANSACTION_CATEGORY_LABEL: Record<TransactionCategory, string> = {
-  [TransactionCategory.EXPENSE]: 'Despesa',
-  [TransactionCategory.INCOME]: 'Receita',
-};
+import {
+  Bank,
+  ExpenseCategory,
+  TransactionOrigin,
+} from '@/shared/constants/finance';
 
 export interface TransactionDTO {
   id: string;
@@ -43,10 +10,11 @@ export interface TransactionDTO {
   label: string;
   type: string;
   paymentStatus: string;
-  bank: string;
+  bank: Bank | string;
   value: number;
   paymentDate: Date;
-  category: TransactionCategory;
+  origin: TransactionOrigin;
+  category: ExpenseCategory | null;
   updatedAt: Date;
   createdAt: Date;
 }

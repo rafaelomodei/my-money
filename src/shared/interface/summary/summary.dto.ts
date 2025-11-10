@@ -1,4 +1,4 @@
-import { PaymentStatus } from '@/shared/interface/transaction/transaction.dto';
+import { PaymentStatus } from '@/shared/constants/finance';
 
 export interface SummaryTransactionItemDTO {
   transactionId: string;
