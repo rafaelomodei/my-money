@@ -21,8 +21,8 @@ const Dashboard = () => {
   const selectedYear = selectedDate.getFullYear();
 
   const chartMonths = useMemo(() => {
-    return Array.from({ length: 6 }, (_, index) => {
-      const date = subMonths(selectedDate, 5 - index);
+    return Array.from({ length: 12 }, (_, index) => {
+      const date = subMonths(selectedDate, 11 - index);
 
       return {
         month: date.getMonth() + 1,
