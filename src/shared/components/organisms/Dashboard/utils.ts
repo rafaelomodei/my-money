@@ -33,7 +33,7 @@ const createPieDataset = <Key extends string>(
   return entries.map((entry) => ({
     [nameKey]: entry.id,
     value: entry.value,
-    fill: `var(--color-${entry.id})`,
+    fill: entry.color,
     label: entry.label,
   })) as PieDatum<Key>[];
 };

@@ -1,7 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
+import { useCurrentUser } from '@/hooks/use-current-user';
 import {
   BankExpensesChart,
   CategoryExpensesChart,
@@ -9,6 +11,8 @@ import {
   type PieChartEntry,
   type DashboardFilterOption,
 } from '@/shared/components/organisms/Dashboard';
+import { dashboardMetricsServer, monthlyDashboardMetricsSynchronizer } from '@/shared/server';
+import type { DashboardMetricEntryDTO, DashboardMetricsDTO } from '@/shared/interface/dashboard/dashboardMetrics.dto';
 
 const monthOptions: DashboardFilterOption[] = [
   { value: 1, label: 'Janeiro' },
@@ -28,8 +32,26 @@ const monthOptions: DashboardFilterOption[] = [
 const buildAvailableYears = (baseYear: number, range = 5) =>
   Array.from({ length: range }, (_, index) => baseYear - (range - 1 - index));
 
+const chartPalette = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+];
+
+const mapEntriesToPieData = (entries: DashboardMetricEntryDTO[]): PieChartEntry[] => {
+  return entries.map((entry, index) => ({
+    id: entry.key,
+    label: entry.label,
+    value: entry.total,
+    color: chartPalette[index % chartPalette.length],
+  }));
+};
+
 const DashboardPage = () => {
   const now = useMemo(() => new Date(), []);
+  const { user } = useCurrentUser();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
@@ -48,26 +70,47 @@ const DashboardPage = () => {
     return `${monthLabel} / ${selectedYear}`;
   }, [selectedMonth, selectedYear]);
 
-  const categoryExpensesData = useMemo<PieChartEntry[]>(
-    () => [
-      { id: 'alimentacao', label: 'Alimentação', value: 2800, color: 'hsl(var(--chart-1))' },
-      { id: 'moradia', label: 'Moradia', value: 1900, color: 'hsl(var(--chart-2))' },
-      { id: 'lazer', label: 'Lazer', value: 750, color: 'hsl(var(--chart-3))' },
-      { id: 'educacao', label: 'Educação', value: 640, color: 'hsl(var(--chart-4))' },
-      { id: 'saude', label: 'Saúde', value: 420, color: 'hsl(var(--chart-5))' },
-    ],
-    []
-  );
+  const metricsQuery = useQuery<DashboardMetricsDTO | null>({
+    queryKey: ['dashboard-metrics', user?.uid, selectedYear, selectedMonth],
+    enabled: Boolean(user),
+    queryFn: async () => {
+      if (!user) return null;
 
-  const bankExpensesData = useMemo<PieChartEntry[]>(
-    () => [
-      { id: 'banco-central', label: 'Banco Central', value: 2100, color: 'hsl(var(--chart-1))' },
-      { id: 'banco-nacional', label: 'Banco Nacional', value: 1600, color: 'hsl(var(--chart-2))' },
-      { id: 'digital-one', label: 'Digital One', value: 940, color: 'hsl(var(--chart-3))' },
-      { id: 'carteira', label: 'Carteira', value: 470, color: 'hsl(var(--chart-4))' },
-    ],
-    []
-  );
+      const metrics = await dashboardMetricsServer.getByMonth(
+        user.uid,
+        selectedYear,
+        selectedMonth
+      );
+
+      if (metrics) {
+        return metrics;
+      }
+
+      return monthlyDashboardMetricsSynchronizer.sync({
+        userId: user.uid,
+        year: selectedYear,
+        month: selectedMonth,
+      });
+    },
+  });
+
+  const metricsData = metricsQuery.data;
+
+  const categoryExpensesData = useMemo<PieChartEntry[]>(() => {
+    if (!metricsData) {
+      return [];
+    }
+
+    return mapEntriesToPieData(metricsData.categoryTotals);
+  }, [metricsData]);
+
+  const bankExpensesData = useMemo<PieChartEntry[]>(() => {
+    if (!metricsData) {
+      return [];
+    }
+
+    return mapEntriesToPieData(metricsData.bankTotals);
+  }, [metricsData]);
 
   return (
     <main className='flex-1 p-4 sm:px-6 sm:py-0'>

@@ -26,6 +26,7 @@ const CategoryExpensesChart = ({ data, description }: CategoryExpensesChartProps
   const chartConfig = useMemo(() => createChartConfig(data), [data]);
   const pieData = useMemo(() => createPieDataset(data, 'category'), [data]);
   const total = useMemo(() => data.reduce((sum, entry) => sum + entry.value, 0), [data]);
+  const hasData = data.length > 0;
 
   return (
     <Card className='flex flex-col'>
@@ -34,20 +35,26 @@ const CategoryExpensesChart = ({ data, description }: CategoryExpensesChartProps
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className='flex-1 pb-0'>
-        <ChartContainer
-          config={chartConfig}
-          className='[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square max-h-[280px]'
-        >
-          <PieChart>
-            <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-            <Pie
-              data={pieData}
-              dataKey='value'
-              nameKey='category'
-              label={({ name }) => getChartLabel(chartConfig, name ?? '')}
-            />
-          </PieChart>
-        </ChartContainer>
+        {hasData ? (
+          <ChartContainer
+            config={chartConfig}
+            className='[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square max-h-[280px]'
+          >
+            <PieChart>
+              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+              <Pie
+                data={pieData}
+                dataKey='value'
+                nameKey='category'
+                label={({ name }) => getChartLabel(chartConfig, name ?? '')}
+              />
+            </PieChart>
+          </ChartContainer>
+        ) : (
+          <div className='flex h-[280px] items-center justify-center text-sm text-muted-foreground'>
+            Nenhuma despesa por categoria encontrada no período selecionado
+          </div>
+        )}
       </CardContent>
       <CardFooter className='flex-col gap-2 text-sm'>
         <div className='flex items-center gap-2 leading-none font-medium'>

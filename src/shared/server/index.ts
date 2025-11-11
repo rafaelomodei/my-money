@@ -2,6 +2,7 @@ import {
   TransactionServerFirebaseAdapter,
   SummaryServerFirebaseAdapter,
   MemberServerFirebaseAdapter,
+  DashboardMetricsServerFirebaseAdapter,
 } from './firebase';
 import { TransactionServer } from '../interface/transaction/transactionServer';
 import { AuthServiceFirebaseAdapter } from './firebase/AuthServerFirebaseAdapter';
@@ -15,6 +16,11 @@ import {
   DefaultSummaryCalculator,
   MonthlySummarySynchronizer,
 } from '../services/summary';
+import { DashboardMetricsServer } from '../interface/dashboard/dashboardMetricsServer';
+import {
+  DefaultDashboardMetricsCalculator,
+  MonthlyDashboardMetricsSynchronizer,
+} from '../services/dashboard';
 
 import { MemberServer } from '../interface/member/memberServer';
 
@@ -22,12 +28,24 @@ const transactionServer: TransactionServer =
   new TransactionServerFirebaseAdapter();
 const summaryServer: SummaryServer = new SummaryServerFirebaseAdapter();
 const memberServer: MemberServer = new MemberServerFirebaseAdapter();
+const dashboardMetricsServer: DashboardMetricsServer =
+  new DashboardMetricsServerFirebaseAdapter();
+
 const summaryCalculator = new DefaultSummaryCalculator();
+const dashboardMetricsCalculator = new DefaultDashboardMetricsCalculator();
+
 const monthlySummarySynchronizer = new MonthlySummarySynchronizer({
   transactionServer,
   summaryServer,
   summaryCalculator,
 });
+
+const monthlyDashboardMetricsSynchronizer =
+  new MonthlyDashboardMetricsSynchronizer({
+    transactionServer,
+    dashboardMetricsServer,
+    dashboardMetricsCalculator,
+  });
 
 const userService: UserServer = new UserServerFirebaseAdapter();
 const authService: AuthServer = new AuthServiceFirebaseAdapter();
@@ -42,4 +60,6 @@ export {
   userCoordinator,
   summaryServer,
   monthlySummarySynchronizer,
+  dashboardMetricsServer,
+  monthlyDashboardMetricsSynchronizer,
 };

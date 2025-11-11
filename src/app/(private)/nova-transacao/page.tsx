@@ -9,6 +9,7 @@ import { CalendarIcon, Plus } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import {
   memberServer,
+  monthlyDashboardMetricsSynchronizer,
   monthlySummarySynchronizer,
   transactionServer,
 } from '@/shared/server';
@@ -734,9 +735,12 @@ const NewTransactionPage = () => {
       }
 
       await Promise.all(
-        Array.from(periodsToSync.values()).map((period) =>
-          monthlySummarySynchronizer.sync(period)
-        )
+        Array.from(periodsToSync.values()).map(async (period) => {
+          await Promise.all([
+            monthlySummarySynchronizer.sync(period),
+            monthlyDashboardMetricsSynchronizer.sync(period),
+          ]);
+        })
       );
 
       return createdTransactions;
@@ -744,6 +748,7 @@ const NewTransactionPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['monthly-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
       router.push('/inicio');
     },
   });

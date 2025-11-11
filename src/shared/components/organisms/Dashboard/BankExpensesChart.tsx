@@ -20,6 +20,7 @@ const BankExpensesChart = ({ data, description }: BankExpensesChartProps) => {
   const chartConfig = useMemo(() => createChartConfig(data), [data]);
   const pieData = useMemo(() => createPieDataset(data, 'bank'), [data]);
   const total = useMemo(() => data.reduce((sum, entry) => sum + entry.value, 0), [data]);
+  const hasData = data.length > 0;
 
   return (
     <Card className='flex flex-col'>
@@ -28,44 +29,50 @@ const BankExpensesChart = ({ data, description }: BankExpensesChartProps) => {
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className='flex-1 pb-0'>
-        <ChartContainer config={chartConfig} className='mx-auto aspect-square max-h-[280px]'>
-          <PieChart>
-            <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-            <Pie data={pieData} dataKey='value' nameKey='bank' innerRadius={60} strokeWidth={5}>
-              <Label
-                content={({ viewBox }) => {
-                  if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
-                    return (
-                      <text
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                        textAnchor='middle'
-                        dominantBaseline='middle'
-                      >
-                        <tspan
+        {hasData ? (
+          <ChartContainer config={chartConfig} className='mx-auto aspect-square max-h-[280px]'>
+            <PieChart>
+              <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+              <Pie data={pieData} dataKey='value' nameKey='bank' innerRadius={60} strokeWidth={5}>
+                <Label
+                  content={({ viewBox }) => {
+                    if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                      return (
+                        <text
                           x={viewBox.cx}
                           y={viewBox.cy}
-                          className='fill-foreground text-3xl font-bold'
+                          textAnchor='middle'
+                          dominantBaseline='middle'
                         >
-                          {formatCurrency(total)}
-                        </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 24}
-                          className='fill-muted-foreground text-sm'
-                        >
-                          Total
-                        </tspan>
-                      </text>
-                    );
-                  }
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className='fill-foreground text-3xl font-bold'
+                          >
+                            {formatCurrency(total)}
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 24}
+                            className='fill-muted-foreground text-sm'
+                          >
+                            Total
+                          </tspan>
+                        </text>
+                      );
+                    }
 
-                  return null;
-                }}
-              />
-            </Pie>
-          </PieChart>
-        </ChartContainer>
+                    return null;
+                  }}
+                />
+              </Pie>
+            </PieChart>
+          </ChartContainer>
+        ) : (
+          <div className='flex h-[280px] items-center justify-center text-sm text-muted-foreground'>
+            Nenhuma despesa por banco encontrada no período selecionado
+          </div>
+        )}
       </CardContent>
       <CardFooter className='flex-col gap-2 text-sm'>
         <div className='flex items-center gap-2 leading-none font-medium'>
