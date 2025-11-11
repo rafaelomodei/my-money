@@ -70,7 +70,7 @@ type ExpenseFormState = {
   bank: Bank | '';
   value: string;
   paymentDate: Date | null;
-  category: ExpenseCategory | '';
+  category: ExpenseCategory | null;
 };
 
 type IncomeFormState = {
@@ -235,7 +235,7 @@ const ExpenseFields = ({
               selected={data.paymentDate ?? undefined}
               onSelect={(date) => onFieldChange('paymentDate', date ?? null)}
               initialFocus
-              captionLayout='dropdown-buttons'
+              captionLayout='dropdown'
               fromYear={2000}
               toYear={2100}
             />
@@ -370,7 +370,7 @@ const IncomeFields = ({ data, disabled, onFieldChange }: IncomeFieldsProps) => {
               selected={data.paymentDate ?? undefined}
               onSelect={(date) => onFieldChange('paymentDate', date ?? null)}
               initialFocus
-              captionLayout='dropdown-buttons'
+              captionLayout='dropdown'
               fromYear={2000}
               toYear={2100}
             />
@@ -395,7 +395,7 @@ const NewTransactionPage = () => {
     bank: '' as ExpenseFormState['bank'],
     value: '',
     paymentDate: null,
-    category: '' as ExpenseFormState['category'],
+    category: null,
   });
   const [incomeFormData, setIncomeFormData] = useState<IncomeFormState>({
     label: '',
