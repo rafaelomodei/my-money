@@ -8,6 +8,7 @@ import {
   BankExpensesChart,
   CategoryExpensesChart,
   DashboardFilters,
+  DashboardSkeleton,
   type PieChartEntry,
   type DashboardFilterOption,
 } from '@/shared/components/organisms/Dashboard';
@@ -94,23 +95,31 @@ const DashboardPage = () => {
     },
   });
 
-  const metricsData = metricsQuery.data;
-
   const categoryExpensesData = useMemo<PieChartEntry[]>(() => {
-    if (!metricsData) {
+    if (!metricsQuery.data) {
       return [];
     }
 
-    return mapEntriesToPieData(metricsData.categoryTotals);
-  }, [metricsData]);
+    return mapEntriesToPieData(metricsQuery.data.categoryTotals);
+  }, [metricsQuery.data]);
 
   const bankExpensesData = useMemo<PieChartEntry[]>(() => {
-    if (!metricsData) {
+    if (!metricsQuery.data) {
       return [];
     }
 
-    return mapEntriesToPieData(metricsData.bankTotals);
-  }, [metricsData]);
+    return mapEntriesToPieData(metricsQuery.data.bankTotals);
+  }, [metricsQuery.data]);
+
+  const metricsData = metricsQuery.data;
+  const isLoadingMetrics =
+    metricsQuery.isPending ||
+    metricsQuery.isLoading ||
+    (!metricsData && metricsQuery.isFetching);
+
+  if (isLoadingMetrics) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <main className='flex-1 p-4 sm:px-6 sm:py-0'>
