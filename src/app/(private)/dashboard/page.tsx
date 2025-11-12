@@ -10,43 +10,19 @@ import {
   DashboardFilters,
   DashboardSkeleton,
   type PieChartEntry,
-  type DashboardFilterOption,
 } from '@/shared/components/organisms/Dashboard';
+import { DEFAULT_CHART_PALETTE } from '@/shared/constants/charts';
+import { MONTH_FILTER_OPTIONS } from '@/shared/constants/date';
 import { dashboardMetricsServer, monthlyDashboardMetricsSynchronizer } from '@/shared/server';
 import type { DashboardMetricEntryDTO, DashboardMetricsDTO } from '@/shared/interface/dashboard/dashboardMetrics.dto';
-
-const monthOptions: DashboardFilterOption[] = [
-  { value: 1, label: 'Janeiro' },
-  { value: 2, label: 'Fevereiro' },
-  { value: 3, label: 'Março' },
-  { value: 4, label: 'Abril' },
-  { value: 5, label: 'Maio' },
-  { value: 6, label: 'Junho' },
-  { value: 7, label: 'Julho' },
-  { value: 8, label: 'Agosto' },
-  { value: 9, label: 'Setembro' },
-  { value: 10, label: 'Outubro' },
-  { value: 11, label: 'Novembro' },
-  { value: 12, label: 'Dezembro' },
-];
-
-const buildAvailableYears = (baseYear: number, range = 5) =>
-  Array.from({ length: range }, (_, index) => baseYear - (range - 1 - index));
-
-const chartPalette = [
-  'hsl(var(--chart-1))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
-];
+import { createYearRange } from '@/shared/utils/date';
 
 const mapEntriesToPieData = (entries: DashboardMetricEntryDTO[]): PieChartEntry[] => {
   return entries.map((entry, index) => ({
     id: entry.key,
     label: entry.label,
     value: entry.total,
-    color: chartPalette[index % chartPalette.length],
+    color: DEFAULT_CHART_PALETTE[index % DEFAULT_CHART_PALETTE.length],
   }));
 };
 
@@ -57,12 +33,14 @@ const DashboardPage = () => {
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
   const availableYears = useMemo(
-    () => buildAvailableYears(now.getFullYear()),
+    () => createYearRange(now.getFullYear()),
     [now]
   );
 
   const selectedPeriodLabel = useMemo(() => {
-    const monthLabel = monthOptions.find((month) => month.value === selectedMonth)?.label;
+    const monthLabel = MONTH_FILTER_OPTIONS.find(
+      (month) => month.value === selectedMonth
+    )?.label;
 
     if (!monthLabel) {
       return `${selectedMonth}/${selectedYear}`;
@@ -131,7 +109,7 @@ const DashboardPage = () => {
               <p className='text-muted-foreground'>Visualize a distribuição dos seus gastos por categoria e banco.</p>
             </div>
             <DashboardFilters
-              months={monthOptions}
+              months={MONTH_FILTER_OPTIONS}
               years={availableYears}
               selectedMonth={selectedMonth}
               selectedYear={selectedYear}

@@ -5,7 +5,6 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/shared/components/ui/card';
 
 const DashboardHeaderSkeleton = () => (
@@ -25,18 +24,20 @@ const DashboardHeaderSkeleton = () => (
 
 const ChartCardSkeleton = () => (
   <Card className='flex flex-col'>
-    <CardHeader className='items-center pb-0'>
-      <CardTitle>
-        <Skeleton className='h-6 w-48' />
+    <CardHeader className='items-center pb-0 text-center'>
+      <CardTitle className='w-full'>
+        <Skeleton className='mx-auto h-6 w-48' />
       </CardTitle>
-      <CardDescription>
-        <Skeleton className='mt-2 h-4 w-40' />
-      </CardDescription>
+      <div className='mt-3 w-40'>
+        <Skeleton className='h-4 w-full' />
+      </div>
     </CardHeader>
-    <CardContent className='flex flex-1 items-center justify-center pb-0'>
-      <Skeleton className='h-[220px] w-[220px] rounded-full sm:h-[250px] sm:w-[250px]' />
+    <CardContent className='flex flex-1 items-center justify-center px-8 pb-6 pt-6'>
+      <div className='flex aspect-square w-full max-w-[240px] items-center justify-center rounded-full border border-dashed border-muted-foreground/40 bg-muted/20 p-6 sm:max-w-[260px]'>
+        <Skeleton className='h-[140px] w-[140px] rounded-full sm:h-[160px] sm:w-[160px]' />
+      </div>
     </CardContent>
-    <CardFooter className='flex-col gap-2 text-sm'>
+    <CardFooter className='flex-col gap-3 text-sm'>
       <Skeleton className='h-4 w-52' />
       <Skeleton className='h-4 w-64' />
     </CardFooter>

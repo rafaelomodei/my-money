@@ -11,15 +11,11 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { Label } from '@/shared/components/ui/label';
-
-export type DashboardFilterOption = {
-  value: number;
-  label: string;
-};
+import type { MonthFilterOption } from '@/shared/constants/date';
 
 type DashboardFiltersProps = {
   className?: string;
-  months: DashboardFilterOption[];
+  months: MonthFilterOption[];
   years: number[];
   selectedMonth: number;
   selectedYear: number;

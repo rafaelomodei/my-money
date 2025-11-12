@@ -14,4 +14,10 @@ const formatMonthAndYear = (month: number, year: number): string => {
   });
 };
 
-export { formatDate, formatMonthAndYear };
+const createYearRange = (baseYear: number, totalYears = 5): number[] =>
+  Array.from(
+    { length: totalYears },
+    (_, index) => baseYear - (totalYears - 1 - index)
+  );
+
+export { formatDate, formatMonthAndYear, createYearRange };
