@@ -58,7 +58,7 @@ const HeaderInfo = ({
   return (
     <div className='grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6'>
       <Card
-        className='sm:col-span-2 md:col-span-4 xl:col-span-2'
+        className='order-3 sm:order-1 sm:col-span-2 md:col-span-4 xl:col-span-2'
         x-chunk='dashboard-05-chunk-0'
       >
         <CardHeader className='pb-3'>
@@ -74,7 +74,10 @@ const HeaderInfo = ({
           </Button>
         </CardFooter>
       </Card>
-      <Card className='sm:col-span-2' x-chunk='dashboard-05-chunk-1'>
+      <Card
+        className='order-2 sm:order-2 sm:col-span-2'
+        x-chunk='dashboard-05-chunk-1'
+      >
         <CardHeader className='pb-2'>
           <CardDescription>+ Receita</CardDescription>
           <CardTitle className='flex gap-4 text-4xl'>
@@ -91,7 +94,10 @@ const HeaderInfo = ({
           <Progress value={incomeProgress} aria-label='Percentual de receitas' />
         </CardFooter>
       </Card>
-      <Card className='sm:col-span-2' x-chunk='dashboard-05-chunk-2'>
+      <Card
+        className='order-1 sm:order-3 sm:col-span-2'
+        x-chunk='dashboard-05-chunk-2'
+      >
         <CardHeader className='pb-2'>
           <CardDescription>- Despesa</CardDescription>
           <CardTitle className='flex gap-4 text-4xl'>
