@@ -17,6 +17,7 @@ import {
 } from '@/shared/components/ui/dropdown-menu';
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetTrigger,
   SheetTitle,
@@ -55,43 +56,58 @@ const Header = () => {
         <SheetContent side='left' className='sm:max-w-xs'>
           <SheetTitle>{pageTitle}</SheetTitle> {/* Atualiza dinamicamente */}
           <nav className='grid gap-6 text-lg font-medium'>
-            <Link
-              href='/inicio'
-              className={`flex items-center gap-4 px-2.5 ${
-                isActive('/inicio')
-                  ? 'text-accent-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Home className='h-5 w-5' />
-              Início
-            </Link>
-            <Link
-              href='/nova-transacao'
-              className={`flex items-center gap-4 px-2.5 ${
-                isActive('/nova-transacao')
-                  ? 'text-accent-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }
-                 `}
-            >
-              <Package2 className='h-5 w-5' />
-              Nova Transação
-            </Link>
-            <Link
-              href='/membros'
-              className='flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground'
-            >
-              <Users2 className='h-5 w-5' />
-              Membros Familiar
-            </Link>
-            <Link
-              href='/dashboard'
-              className='flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground'
-            >
-              <LineChart className='h-5 w-5' />
-              Dashboard
-            </Link>
+            <SheetClose asChild>
+              <Link
+                href='/inicio'
+                className={`flex items-center gap-4 px-2.5 ${
+                  isActive('/inicio')
+                    ? 'text-accent-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Home className='h-5 w-5' />
+                Início
+              </Link>
+            </SheetClose>
+            <SheetClose asChild>
+              <Link
+                href='/nova-transacao'
+                className={`flex items-center gap-4 px-2.5 ${
+                  isActive('/nova-transacao')
+                    ? 'text-accent-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Package2 className='h-5 w-5' />
+                Nova Transação
+              </Link>
+            </SheetClose>
+            <SheetClose asChild>
+              <Link
+                href='/membros'
+                className={`flex items-center gap-4 px-2.5 ${
+                  isActive('/membros')
+                    ? 'text-accent-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Users2 className='h-5 w-5' />
+                Membros Familiar
+              </Link>
+            </SheetClose>
+            <SheetClose asChild>
+              <Link
+                href='/dashboard'
+                className={`flex items-center gap-4 px-2.5 ${
+                  isActive('/dashboard')
+                    ? 'text-accent-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <LineChart className='h-5 w-5' />
+                Dashboard
+              </Link>
+            </SheetClose>
           </nav>
         </SheetContent>
       </Sheet>
