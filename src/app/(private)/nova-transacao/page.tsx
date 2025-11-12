@@ -1,18 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { addMonths, format } from 'date-fns';
 import { CalendarIcon, Plus } from 'lucide-react';
 
 import { useCurrentUser } from '@/hooks/use-current-user';
-import {
-  memberServer,
-  monthlyDashboardMetricsSynchronizer,
-  monthlySummarySynchronizer,
-  transactionServer,
-} from '@/shared/server';
 import { TransactionDTO } from '@/shared/interface/transaction/transaction.dto';
 import { MemberDTO } from '@/shared/interface/member/member.dto';
 import {
@@ -65,6 +58,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ActionSheet } from '@/shared/components/ui/action-sheet';
+import { useMembers, useCreateMember } from '@/hooks/use-members';
+import {
+  useCreateTransaction,
+  type CreateTransactionPayload,
+} from '@/hooks/use-create-transaction';
 
 enum TransactionStep {
   DETAILS,
@@ -632,13 +630,8 @@ const PaymentStep = ({
   );
 };
 
-type CreateTransactionPayload = {
-  transactions: Array<Omit<TransactionDTO, 'id' | 'updatedAt' | 'createdAt'>>;
-};
-
 const NewTransactionPage = () => {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { user, isLoading: isUserLoading } = useCurrentUser();
   const userId = user?.uid ?? null;
 
@@ -676,36 +669,18 @@ const NewTransactionPage = () => {
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
   const [newMemberName, setNewMemberName] = useState('');
 
-  const { data: members = [], isLoading: isMembersLoading } = useQuery({
-    queryKey: ['members', userId],
+  const membersQuery = useMembers({
+    userId,
     enabled: Boolean(userId),
-    queryFn: async () => {
-      return memberServer.listByUser(userId as string);
-    },
   });
 
-  const addMemberMutation = useMutation({
-    mutationFn: async (memberName: string) => {
-      if (!userId) {
-        throw new Error('Usuário não autenticado.');
-      }
+  const members = membersQuery.data ?? [];
+  const isMembersLoading =
+    membersQuery.isPending || membersQuery.isLoading || membersQuery.isFetching;
 
-      return memberServer.create({
-        name: memberName,
-        userId,
-      });
-    },
+  const addMemberMutation = useCreateMember({
+    userId,
     onSuccess: (createdMember) => {
-      queryClient.setQueryData<MemberDTO[] | undefined>(
-        ['members', userId],
-        (previousMembers) => {
-          if (!previousMembers) {
-            return [createdMember];
-          }
-
-          return [...previousMembers, createdMember];
-        }
-      );
       setSelectedMember({
         memberId: createdMember.id,
         memberName: createdMember.name,
@@ -715,54 +690,8 @@ const NewTransactionPage = () => {
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: async ({ transactions }: CreateTransactionPayload) => {
-      if (transactions.length === 0) {
-        throw new Error('Nenhuma transação para registrar.');
-      }
-
-      const createdTransactions: TransactionDTO[] = [];
-      const periodsToSync = new Map<
-        string,
-        {
-          userId: string;
-          year: number;
-          month: number;
-        }
-      >();
-
-      for (const transaction of transactions) {
-        const createdTransaction = await transactionServer.create(transaction);
-        createdTransactions.push(createdTransaction);
-
-        const year = createdTransaction.paymentDate.getFullYear();
-        const month = createdTransaction.paymentDate.getMonth() + 1;
-        const key = `${createdTransaction.userId}-${year}-${month}`;
-
-        if (!periodsToSync.has(key)) {
-          periodsToSync.set(key, {
-            userId: createdTransaction.userId,
-            year,
-            month,
-          });
-        }
-      }
-
-      await Promise.all(
-        Array.from(periodsToSync.values()).map(async (period) => {
-          await Promise.all([
-            monthlySummarySynchronizer.sync(period),
-            monthlyDashboardMetricsSynchronizer.sync(period),
-          ]);
-        })
-      );
-
-      return createdTransactions;
-    },
+  const mutation = useCreateTransaction({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['monthly-summary'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
       router.push('/inicio');
     },
   });
