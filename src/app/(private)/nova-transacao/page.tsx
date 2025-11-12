@@ -59,11 +59,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/shared/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { ActionSheet } from '@/shared/components/ui/action-sheet';
 
 enum TransactionStep {
   DETAILS,
@@ -115,13 +116,16 @@ interface StepIndicatorProps {
 
 const StepIndicator = ({ currentStep }: StepIndicatorProps) => {
   return (
-    <div className='grid gap-4 sm:grid-cols-3'>
+    <div className='flex w-full gap-2 sm:grid sm:grid-cols-3 sm:gap-4'>
       {STEP_SEQUENCE.map((step, index) => {
         const isActive = currentStep === step.key;
         const isCompleted = currentStep > step.key;
 
         return (
-          <div key={step.key} className='flex items-center gap-3'>
+          <div
+            key={step.key}
+            className='flex flex-1 items-center justify-center gap-2 sm:justify-start sm:gap-3'
+          >
             <div
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-full border text-sm font-medium',
@@ -136,12 +140,17 @@ const StepIndicator = ({ currentStep }: StepIndicatorProps) => {
             </div>
             <span
               className={cn(
-                'text-sm font-medium',
+                'hidden text-sm font-medium sm:inline',
                 isActive ? 'text-foreground' : 'text-muted-foreground'
               )}
             >
               {step.title}
             </span>
+            {isActive ? (
+              <span className='text-sm font-medium text-foreground sm:hidden'>
+                {step.title}
+              </span>
+            ) : null}
           </div>
         );
       })}
@@ -388,6 +397,7 @@ const PaymentStep = ({
     origin === TransactionOrigin.EXPENSE
       ? expenseData.paymentDate
       : incomeData.paymentDate;
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const handleValueChange = (value: string) => {
     if (origin === TransactionOrigin.EXPENSE) {
@@ -418,6 +428,10 @@ const PaymentStep = ({
       onExpenseFieldChange('paymentDate', date);
     } else {
       onIncomeFieldChange('paymentDate', date);
+    }
+
+    if (date) {
+      setIsCalendarOpen(false);
     }
   };
 
@@ -525,7 +539,7 @@ const PaymentStep = ({
             ? 'Data da compra'
             : 'Data do recebimento'}
         </Label>
-        <Popover>
+        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
           <PopoverTrigger asChild>
             <Button
               type='button'
@@ -1002,9 +1016,11 @@ const NewTransactionPage = () => {
     return 'Salvar Transação';
   };
 
+  const isMobile = useIsMobile();
+
   return (
-    <div className='flex min-h-screen flex-col items-center justify-center py-6'>
-      <Card className='w-full max-w-2xl'>
+    <div className='flex min-h-screen flex-col py-0 sm:items-center sm:justify-center sm:py-6'>
+      <Card className='flex w-full flex-1 flex-col rounded-none border-none shadow-none sm:w-full sm:max-w-2xl sm:flex-none sm:rounded-xl sm:border sm:shadow'>
         <CardHeader>
           <CardTitle>Adicionar Nova Transação</CardTitle>
         </CardHeader>
@@ -1047,47 +1063,15 @@ const NewTransactionPage = () => {
             ) : null}
 
             <div className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
-              <Dialog
-                open={isCancelDialogOpen}
-                onOpenChange={setIsCancelDialogOpen}
+              <Button
+                type='button'
+                variant='outline'
+                className='w-full sm:w-auto'
+                disabled={mutation.isPending}
+                onClick={() => setIsCancelDialogOpen(true)}
               >
-                <DialogTrigger asChild>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    className='w-full sm:w-auto'
-                    disabled={mutation.isPending}
-                  >
-                    Cancelar
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className='sm:max-w-md'>
-                  <DialogHeader>
-                    <DialogTitle>Cancelar cadastro da transação</DialogTitle>
-                    <DialogDescription>
-                      Tem certeza de que deseja cancelar? As informações
-                      preenchidas serão perdidas.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter className='flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
-                    <DialogClose asChild>
-                      <Button variant='outline' className='w-full sm:w-auto'>
-                        Continuar editando
-                      </Button>
-                    </DialogClose>
-                    <Button
-                      variant='destructive'
-                      className='w-full sm:w-auto'
-                      onClick={() => {
-                        setIsCancelDialogOpen(false);
-                        router.push('/inicio');
-                      }}
-                    >
-                      Cancelar transação
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                Cancelar
+              </Button>
 
               <div className='flex flex-col gap-2 sm:flex-row'>
                 {currentStep !== TransactionStep.DETAILS ? (
@@ -1166,6 +1150,55 @@ const NewTransactionPage = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {!isMobile ? (
+        <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+          <DialogContent className='sm:max-w-md'>
+            <DialogHeader>
+              <DialogTitle>Cancelar cadastro da transação</DialogTitle>
+              <DialogDescription>
+                Tem certeza de que deseja cancelar? As informações preenchidas
+                serão perdidas.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className='flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
+              <DialogClose asChild>
+                <Button variant='outline' className='w-full sm:w-auto'>
+                  Continuar editando
+                </Button>
+              </DialogClose>
+              <Button
+                variant='destructive'
+                className='w-full sm:w-auto'
+                onClick={() => {
+                  setIsCancelDialogOpen(false);
+                  router.push('/inicio');
+                }}
+              >
+                Cancelar transação
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <ActionSheet
+          open={isCancelDialogOpen}
+          onOpenChange={setIsCancelDialogOpen}
+          title='Cancelar cadastro da transação'
+          description='Tem certeza de que deseja cancelar? As informações preenchidas serão perdidas.'
+          primaryAction={{
+            label: 'Cancelar transação',
+            variant: 'destructive',
+            onClick: () => {
+              router.push('/inicio');
+            },
+          }}
+          secondaryAction={{
+            label: 'Continuar editando',
+            variant: 'outline',
+          }}
+        />
+      )}
     </div>
   );
 };
