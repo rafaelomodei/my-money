@@ -1,7 +1,6 @@
 'use client';
 
 import { File, ListFilter } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/shared/components/ui/button';
 import {
   Card,
@@ -24,11 +23,11 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/shared/components/ui/tabs';
-import { transactionServer } from '@/shared/server';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { useMemo, useState } from 'react';
 import { TransactionTable } from '@/shared/components/molecules/TransactionTable/TransactionTable';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { useTransactions } from '@/hooks/use-transactions';
 
 const months = [
   'Janeiro',
@@ -51,45 +50,43 @@ const ReleaseTabs = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // 🔹 Ano atual
   const { user, isLoading: isUserLoading } = useCurrentUser();
 
-  const dateRangeFetcher = useMemo(() => {
-    if (!user) return undefined;
+  const { startDate, endDate } = useMemo(() => {
+    if (selectedTab === 'week') {
+      return {
+        startDate: startOfWeek(new Date(), { weekStartsOn: 0 }),
+        endDate: endOfWeek(new Date(), { weekStartsOn: 0 }),
+      };
+    }
 
-    return async (startDate: Date, endDate: Date) => {
-      return transactionServer.getByDateRange(user.uid, startDate, endDate);
+    if (selectedTab === 'month') {
+      const referenceDate = new Date(selectedYear, selectedMonth - 1);
+      return {
+        startDate: startOfMonth(referenceDate),
+        endDate: endOfMonth(referenceDate),
+      };
+    }
+
+    const referenceYear = selectedYear;
+    return {
+      startDate: new Date(referenceYear, 0, 1, 0, 0, 0),
+      endDate: new Date(referenceYear, 11, 31, 23, 59, 59),
     };
-  }, [user]);
+  }, [selectedMonth, selectedTab, selectedYear]);
 
-  const {
-    data: transactions,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: [
-      'transactions',
-      user?.uid,
-      selectedTab,
-      selectedMonth,
-      selectedYear,
-    ],
-    queryFn: async () => {
-      if (!dateRangeFetcher) return [];
-
-      if (selectedTab === 'week') {
-        const startDate = startOfWeek(new Date(), { weekStartsOn: 0 });
-        const endDate = endOfWeek(new Date(), { weekStartsOn: 0 });
-        return dateRangeFetcher(startDate, endDate);
-      }
-
-      if (selectedTab === 'month') {
-        const startDate = startOfMonth(new Date(selectedYear, selectedMonth - 1));
-        const endDate = endOfMonth(new Date(selectedYear, selectedMonth - 1));
-        return dateRangeFetcher(startDate, endDate);
-      }
-
-      return [];
-    },
+  const transactionsQuery = useTransactions({
+    userId: user?.uid,
+    startDate,
+    endDate,
+    extraKey: [selectedTab, selectedMonth, selectedYear],
     enabled: Boolean(user),
   });
+
+  const transactions = transactionsQuery.data ?? [];
+  const isLoading =
+    transactionsQuery.isPending ||
+    transactionsQuery.isLoading ||
+    transactionsQuery.isFetching;
+  const error = transactionsQuery.error;
 
   return (
     <Tabs defaultValue='week' onValueChange={setSelectedTab}>

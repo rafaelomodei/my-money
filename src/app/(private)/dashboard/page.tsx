@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 
 import { useCurrentUser } from '@/hooks/use-current-user';
 import {
@@ -13,9 +12,9 @@ import {
 } from '@/shared/components/organisms/Dashboard';
 import { DEFAULT_CHART_PALETTE } from '@/shared/constants/charts';
 import { MONTH_FILTER_OPTIONS } from '@/shared/constants/date';
-import { dashboardMetricsServer, monthlyDashboardMetricsSynchronizer } from '@/shared/server';
-import type { DashboardMetricEntryDTO, DashboardMetricsDTO } from '@/shared/interface/dashboard/dashboardMetrics.dto';
+import type { DashboardMetricEntryDTO } from '@/shared/interface/dashboard/dashboardMetrics.dto';
 import { createYearRange } from '@/shared/utils/date';
+import { useDashboardMetrics } from '@/hooks/use-dashboard-metrics';
 
 const mapEntriesToPieData = (entries: DashboardMetricEntryDTO[]): PieChartEntry[] => {
   return entries.map((entry, index) => ({
@@ -49,28 +48,11 @@ const DashboardPage = () => {
     return `${monthLabel} / ${selectedYear}`;
   }, [selectedMonth, selectedYear]);
 
-  const metricsQuery = useQuery<DashboardMetricsDTO | null>({
-    queryKey: ['dashboard-metrics', user?.uid, selectedYear, selectedMonth],
+  const metricsQuery = useDashboardMetrics({
+    userId: user?.uid,
+    year: selectedYear,
+    month: selectedMonth,
     enabled: Boolean(user),
-    queryFn: async () => {
-      if (!user) return null;
-
-      const metrics = await dashboardMetricsServer.getByMonth(
-        user.uid,
-        selectedYear,
-        selectedMonth
-      );
-
-      if (metrics) {
-        return metrics;
-      }
-
-      return monthlyDashboardMetricsSynchronizer.sync({
-        userId: user.uid,
-        year: selectedYear,
-        month: selectedMonth,
-      });
-    },
   });
 
   const categoryExpensesData = useMemo<PieChartEntry[]>(() => {

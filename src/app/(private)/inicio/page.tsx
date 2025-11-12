@@ -1,14 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { addMonths, subMonths } from 'date-fns';
 import { HeaderInfo } from '@/shared/components/organisms/HeaderInfo';
 import { ReleaseTabs } from '@/shared/components/organisms/AccountingTab';
 import { Resume } from '@/shared/components/organisms/Resume';
 import { FinancialSummaryChart } from '@/shared/components/organisms/FinancialSummaryChart';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { monthlySummarySynchronizer, summaryServer } from '@/shared/server';
+import { useMonthlySummary } from '@/hooks/use-monthly-summary';
+import { useMonthlySummaryHistory } from '@/hooks/use-monthly-summary-history';
 
 const Dashboard = () => {
   const { user, isLoading: isUserLoading } = useCurrentUser();
@@ -32,59 +32,16 @@ const Dashboard = () => {
     });
   }, [selectedDate]);
 
-  const summaryQuery = useQuery({
-    queryKey: ['monthly-summary', user?.uid, selectedYear, selectedMonth],
-    queryFn: async () => {
-      if (!user) return null;
-
-      const existingSummary = await summaryServer.getByMonth(
-        user.uid,
-        selectedYear,
-        selectedMonth
-      );
-
-      if (existingSummary) {
-        return existingSummary;
-      }
-
-      return monthlySummarySynchronizer.sync({
-        userId: user.uid,
-        year: selectedYear,
-        month: selectedMonth,
-      });
-    },
+  const summaryQuery = useMonthlySummary({
+    userId: user?.uid,
+    year: selectedYear,
+    month: selectedMonth,
     enabled: Boolean(user),
   });
 
-  const summaryHistoryQuery = useQuery({
-    queryKey: [
-      'monthly-summary-history',
-      user?.uid,
-      chartMonths.map(({ year, month }) => `${year}-${month}`),
-    ],
-    queryFn: async () => {
-      if (!user) return [];
-
-      return Promise.all(
-        chartMonths.map(async ({ month, year }) => {
-          const existingSummary = await summaryServer.getByMonth(
-            user.uid,
-            year,
-            month
-          );
-
-          if (existingSummary) {
-            return existingSummary;
-          }
-
-          return monthlySummarySynchronizer.sync({
-            userId: user.uid,
-            year,
-            month,
-          });
-        })
-      );
-    },
+  const summaryHistoryQuery = useMonthlySummaryHistory({
+    userId: user?.uid,
+    periods: chartMonths.map(({ month, year }) => ({ month, year })),
     enabled: Boolean(user),
   });
 
